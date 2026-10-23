@@ -14,6 +14,20 @@ namespace Anvil.Tests.Plugins
   [TestFixture]
   public sealed class PluginTests
   {
+    private const string CoreScriptName = "anvtest_core";
+
+    [ServiceBinding(typeof(CoreScriptHandlerTestService))]
+    private sealed class CoreScriptHandlerTestService
+    {
+      public static int CallCount;
+
+      [ScriptHandler(CoreScriptName)]
+      private void OnScript()
+      {
+        CallCount++;
+      }
+    }
+
     [Inject]
     private static PluginManager PluginManager { get; set; } = null!;
 
@@ -248,6 +262,47 @@ namespace Anvil.Tests.Plugins
 
       VirtualMachine.Execute(scriptName);
       Assert.That(callCountField.GetValue(null), Is.EqualTo(1));
+
+      int coreCallsBeforeUnload = CoreScriptHandlerTestService.CallCount;
+      WeakReference pluginRef = PluginManager.UnloadPlugin(plugin, false);
+
+      // Unloading a plugin must not strip the script handlers of core services.
+      VirtualMachine.Execute(CoreScriptName);
+      Assert.That(CoreScriptHandlerTestService.CallCount, Is.EqualTo(coreCallsBeforeUnload + 1));
+
+      return pluginRef;
+    }
+
+    [Test]
+    public void PluginStaticInjectionTest()
+    {
+      const string pluginName = "StaticInjectionTestPlugin";
+      const string serviceName = "StaticInjectionTestService";
+
+      const string implementation =
+        """
+          [Inject]
+          public static ScriptHandleFactory ScriptHandleFactory { get; set; }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), $"{nameof(Anvil)}.{nameof(Anvil.Services)}"],
+        [],
+        [],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginStaticInjectionTest(pluginPath, serviceName);
+
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference RunPluginStaticInjectionTest(string pluginPath, string serviceName)
+    {
+      (Plugin plugin, Type pluginServiceType) = LoadPlugin(pluginPath, serviceName);
+      PropertyInfo property = pluginServiceType.GetProperty("ScriptHandleFactory", BindingFlags.Public | BindingFlags.Static)!;
+      Assert.That(property.GetValue(null), Is.Not.Null);
 
       return PluginManager.UnloadPlugin(plugin, false);
     }
