@@ -20,6 +20,9 @@ namespace Anvil.Tests.Plugins
     [Inject]
     private static PluginStorageService PluginStorageService { get; set; } = null!;
 
+    [Inject]
+    private static ScriptHandleFactory ScriptHandleFactory { get; set; } = null!;
+
     // Test Dependencies
     [Inject]
     private static SchedulerService SchedulerService { get; set; } = null!;
@@ -172,6 +175,35 @@ namespace Anvil.Tests.Plugins
       string pluginPath = CreatePlugin(pluginName, source);
       WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
 
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [Test]
+    public void PluginScriptHandlersRemovedOnUnloadTest()
+    {
+      const string pluginName = "ScriptHandleTestPlugin";
+      const string serviceName = "ScriptHandleTestService";
+      const string scriptName = "anvtest_handle";
+
+      // The handle is intentionally never disposed: Anvil must remove it when the plugin unloads.
+      const string implementation =
+        $$"""
+          public ScriptHandleTestService(ScriptHandleFactory scriptHandleFactory)
+          {
+            scriptHandleFactory.RegisterScriptHandler("{{scriptName}}", _ => ScriptHandleResult.Handled);
+          }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), $"{nameof(Anvil)}.{nameof(Anvil.Services)}", $"{nameof(Anvil)}.{nameof(Anvil.API)}"],
+        [],
+        [],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
+
+      Assert.That(ScriptHandleFactory.IsScriptRegistered(scriptName), Is.False);
       WaitAndCheckForPluginUnload(pluginRef);
     }
 
