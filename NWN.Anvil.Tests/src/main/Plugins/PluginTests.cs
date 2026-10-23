@@ -146,6 +146,43 @@ namespace Anvil.Tests.Plugins
     }
 
     [Test]
+    public void PluginEventSubscriptionsRemovedOnUnloadTest()
+    {
+      const string pluginName = "EventSubscriptionTestPlugin";
+      const string serviceName = "EventSubscriptionTestService";
+
+      // Subscriptions are intentionally never removed: Anvil must remove them when the plugin unloads.
+      const string implementation =
+        """
+          public void Init()
+          {
+            NwModule.Instance.OnHeartbeat += OnModuleHeartbeat;
+            NwModule.Instance.Areas.First().OnHeartbeat += _ => {};
+          }
+
+          private void OnModuleHeartbeat(ModuleEvents.OnHeartbeat eventData) {}
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), "System.Linq", $"{nameof(Anvil)}.{nameof(Anvil.Services)}", $"{nameof(Anvil)}.{nameof(Anvil.API)}", $"{nameof(Anvil)}.{nameof(Anvil.API)}.{nameof(Anvil.API.Events)}"],
+        [],
+        [nameof(IInitializable)],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
+
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference RunPluginLoadAndUnload(string pluginPath, string serviceName)
+    {
+      (Plugin plugin, Type _) = LoadPlugin(pluginPath, serviceName);
+      return PluginManager.UnloadPlugin(plugin, false);
+    }
+
+    [Test]
     public void PluginDependencyTest()
     {
       const string pluginName = "DependencyTestPlugin";
