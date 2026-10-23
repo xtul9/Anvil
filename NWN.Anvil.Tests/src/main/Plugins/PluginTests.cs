@@ -21,6 +21,9 @@ namespace Anvil.Tests.Plugins
     private static PluginStorageService PluginStorageService { get; set; } = null!;
 
     [Inject]
+    private static VirtualMachine VirtualMachine { get; set; } = null!;
+
+    [Inject]
     private static ScriptHandleFactory ScriptHandleFactory { get; set; } = null!;
 
     // Test Dependencies
@@ -205,6 +208,48 @@ namespace Anvil.Tests.Plugins
 
       Assert.That(ScriptHandleFactory.IsScriptRegistered(scriptName), Is.False);
       WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [Test]
+    public void PluginScriptHandlerAttributeTest()
+    {
+      const string pluginName = "ScriptHandlerAttributeTestPlugin";
+      const string serviceName = "ScriptHandlerAttributeTestService";
+      const string scriptName = "anvtest_attr";
+
+      const string implementation =
+        $$"""
+          public static int CallCount;
+
+          [ScriptHandler("{{scriptName}}")]
+          private void OnScript()
+          {
+            CallCount++;
+          }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), $"{nameof(Anvil)}.{nameof(Anvil.Services)}"],
+        [],
+        [],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginScriptHandlerAttributeTest(pluginPath, serviceName, scriptName);
+
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private WeakReference RunPluginScriptHandlerAttributeTest(string pluginPath, string serviceName, string scriptName)
+    {
+      (Plugin plugin, Type pluginServiceType) = LoadPlugin(pluginPath, serviceName);
+      FieldInfo callCountField = pluginServiceType.GetField("CallCount", BindingFlags.Public | BindingFlags.Static)!;
+
+      VirtualMachine.Execute(scriptName);
+      Assert.That(callCountField.GetValue(null), Is.EqualTo(1));
+
+      return PluginManager.UnloadPlugin(plugin, false);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
