@@ -2,7 +2,7 @@
 > We recommend **Docker** over native installs as it isolates your server in a container. This can protect the rest of your system in the event that a malicious plugin is installed.
 
 ## Prerequisites
-.NET 8.0: https://docs.microsoft.com/en-us/dotnet/core/install/linux
+.NET 10.0: https://docs.microsoft.com/en-us/dotnet/core/install/linux
 
 ## Installing Anvil
 1. Download and extract the dedicated server package: [Server packages](https://forums.beamdog.com/discussion/67157/server-download-packages-and-docker-support/p1)

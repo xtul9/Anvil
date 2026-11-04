@@ -1,7 +1,7 @@
 ﻿If this is your first time in .NET development, welcome! This first guide should help you set up your environment so you are prepared to make your first plugin.
 
 ## 1. Install the .NET SDK
-Download and install the latest `.NET SDK` for your platform. Anvil requires a minimum of `.NET 8` or higher
+Download and install the latest `.NET SDK` for your platform. Anvil requires a minimum of `.NET 10` or higher
 
 https://dotnet.microsoft.com/download
 

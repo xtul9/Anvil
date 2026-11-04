@@ -30,8 +30,8 @@ RUN apt-get update \
 && rm packages-microsoft-prod.deb \
 && apt-get update \
 && apt-get install -y --no-install-recommends \
-    dotnet-runtime-8.0 \
-    dotnet-apphost-pack-8.0 \
+    dotnet-runtime-10.0 \
+    dotnet-apphost-pack-10.0 \
 && rm -rf /var/cache/apt /var/lib/apt/lists/*
 
 # Copy Anvil Binaries

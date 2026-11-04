@@ -64,7 +64,7 @@ jobs:
         with:
           push: never
           env: |
-            NWNX_DOTNET_ASSEMBLY=/workspaces/NWN.Anvil/NWN.Anvil/bin/Release/net8.0/NWN.Anvil
+            NWNX_DOTNET_ASSEMBLY=/workspaces/NWN.Anvil/NWN.Anvil/bin/Release/net10.0/NWN.Anvil
             ANVIL_ADD_PLUGIN_PATHS=/workspaces/NWN.Anvil/NWN.Anvil.TestRunner/bin/Release:/workspaces/NWN.Anvil/NWN.Anvil.Tests/bin/Release
           runCmd: |
             git config --global --add safe.directory /workspaces/NWN.Anvil
@@ -265,7 +265,7 @@ jobs:
           file: ./dockerfile
           push: true
           build-args: |
-              BINARY_PATH=/binaries/net8.0
+              BINARY_PATH=/binaries/net10.0
           labels: |
               org.opencontainers.image.title=Anvil
               org.opencontainers.image.description=Anvil is a C# library that attempts to wrap Neverwinter Script with C# niceties and contexts, instead of a collection of functions. This image contains a NWNX server configured to use Anvil.
