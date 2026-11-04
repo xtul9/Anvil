@@ -13,6 +13,9 @@ https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 - System.Reflection.MetadataLoadContext: 8.0.1 -> 10.0.14
 - NuGet.Packaging: pinned to 5.11.7 (GHSA-g4vj-cjjj-v7hg, through Paket.Core; restore fails on it under .NET 10's transitive audit)
 
+### Fixed
+- TLS 1.3 connections failed on first read with `SSL_ERROR_SSL` under .NET 10 when hosted by nwserver, whose exported OpenSSL symbols take precedence. TLS resumption is now disabled in-process (`System.Net.Security.DisableTlsResume`), so each connection does a full handshake.
+
 ## 8193.37.3 (NWN 8193.37-17)
 https://github.com/nwn-dotnet/Anvil/compare/v8193.37.2...v8193.37.3
 

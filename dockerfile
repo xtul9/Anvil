@@ -82,7 +82,6 @@ ENV DOTNET_DbgMiniDumpName=/nwn/run/logs.0/anvil-crash-%t.dmp
 ENV DOTNET_CreateDumpLogToFile=/nwn/run/logs.0/anvil-crash.log
 
 #Force .NET to use OpenSSL 1.1.1
-ENV CLR_OPENSSL_VERSION_OVERRIDE=1.1
 ENV DOTNET_OPENSSL_VERSION_OVERRIDE=1.1
 
 # Entrypoint & Executable

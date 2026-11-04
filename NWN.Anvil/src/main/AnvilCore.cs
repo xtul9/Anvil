@@ -22,6 +22,7 @@ namespace Anvil
   {
     private const string ExpectedOpenSslEnvironmentValue = "1.1";
     private const int ExpectedOpenSslVersion = 269488463;
+    private const string DisableTlsResumeSwitch = "System.Net.Security.DisableTlsResume";
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -108,6 +109,7 @@ namespace Anvil
       Log.Info($"Loading {runtimeInfo.AssemblyName} {runtimeInfo.AssemblyVersion} (NWN.Core: {runtimeInfo.CoreVersion}, NWN.Native: {runtimeInfo.NativeVersion}, NWNX.NET: {runtimeInfo.NWNXDotNetVersion})");
       CheckServerVersion();
       CheckOpenSslVersion();
+      AppContext.SetSwitch(DisableTlsResumeSwitch, true);
     }
 
     private void CheckServerVersion()
