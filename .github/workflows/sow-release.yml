@@ -1,0 +1,62 @@
+name: SoW Release
+
+on:
+  push:
+    tags:
+      - 'v*-sow.*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      NUGET_API_KEY: ${{ secrets.SOW_NUGET_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          dotnet build --configuration Release -p:Version="$VERSION"
+
+      - name: Push packages to the SoW feed
+        if: ${{ env.NUGET_API_KEY != '' }}
+        run: |
+          for package in \
+            "NWN.Anvil/bin/Release/NWN.Anvil.$VERSION.nupkg" \
+            "NWN.Anvil.TestRunner/bin/Release/NWN.Anvil.TestRunner/NWN.Anvil.TestRunner.$VERSION.nupkg"; do
+            dotnet nuget push "$package" \
+              --source https://git.westgate.pw/api/packages/ShadowsOverWestgate/nuget/index.json \
+              --api-key "$NUGET_API_KEY" --skip-duplicate
+          done
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./
+          file: ./dockerfile
+          push: true
+          build-args: |
+            BINARY_PATH=NWN.Anvil/bin/Release/net10.0
+          tags: |
+            ghcr.io/xtul9/anvil:${{ env.VERSION }}
