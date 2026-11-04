@@ -15,6 +15,7 @@ https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 
 ### Fixed
 - TLS 1.3 connections failed on first read with `SSL_ERROR_SSL` under .NET 10 when hosted by nwserver, whose exported OpenSSL symbols take precedence. TLS resumption is now disabled in-process (`System.Net.Security.DisableTlsResume`), so each connection does a full handshake.
+- Isolated plugins can load at startup and reload alone (#880, #881, by jakkn): they load after the anvil container is built, `[ScriptHandler]` methods in them are dispatched, and event subscriptions and script handlers they leave behind are removed on unload. `EventService` and `ScriptHandleFactory` take a new `IServiceManager` constructor parameter.
 
 ## 8193.37.3 (NWN 8193.37-17)
 https://github.com/nwn-dotnet/Anvil/compare/v8193.37.2...v8193.37.3
