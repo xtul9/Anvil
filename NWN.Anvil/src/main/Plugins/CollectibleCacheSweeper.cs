@@ -19,7 +19,7 @@ namespace Anvil.Plugins
 
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    private static readonly string[] SweptLibraries = ["LightInject", "Newtonsoft.Json", "System.Text.Json"];
+    private static readonly string[] SweptLibraries = ["LightInject", "Newtonsoft.Json", "System.Text.Json", "System.ComponentModel.TypeConverter"];
 
     private static readonly Type[] SerializationAttributes =
     [
@@ -36,7 +36,7 @@ namespace Anvil.Plugins
       HashSet<object> visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
       int removed = SweepObject(longLivedContainer, visited, 0);
 
-      foreach (Assembly library in AssemblyLoadContext.Default.Assemblies.Where(IsSweptLibrary))
+      foreach (Assembly library in LongLivedAssemblies().Where(IsSweptLibrary))
       {
         foreach (Type type in StaticCacheHolders(library))
         {
@@ -44,12 +44,42 @@ namespace Anvil.Plugins
         }
       }
 
+      removed += DisposeMetersOfUnloadedCode();
+
       Log.Info("Dropped {Count} cache entries that held unloaded plugin code", removed);
+    }
+
+    /// <summary>
+    /// Every meter is listed in the runtime for the life of the process. A library a plugin carries (Npgsql) makes
+    /// its meter with callbacks into its own code, and never disposes it.
+    /// </summary>
+    private static int DisposeMetersOfUnloadedCode()
+    {
+      FieldInfo? allMetersField = typeof(System.Diagnostics.Metrics.Meter).GetField("s_allMeters", BindingFlags.Static | BindingFlags.NonPublic);
+      if (allMetersField?.GetValue(null) is not IList allMeters)
+      {
+        return 0;
+      }
+
+      List<System.Diagnostics.Metrics.Meter> stale;
+      lock (allMeters)
+      {
+        stale = allMeters.OfType<System.Diagnostics.Metrics.Meter>()
+          .Where(meter => HoldsCollectible(meter, new HashSet<object>(ReferenceEqualityComparer.Instance), 0))
+          .ToList();
+      }
+
+      foreach (System.Diagnostics.Metrics.Meter meter in stale)
+      {
+        meter.Dispose();
+      }
+
+      return stale.Count;
     }
 
     private static void RunMetadataUpdateHandlers()
     {
-      foreach (Assembly assembly in AssemblyLoadContext.Default.Assemblies)
+      foreach (Assembly assembly in LongLivedAssemblies())
       {
         foreach (MetadataUpdateHandlerAttribute handler in assembly.GetCustomAttributes<MetadataUpdateHandlerAttribute>())
         {
@@ -64,6 +94,12 @@ namespace Anvil.Plugins
           }
         }
       }
+    }
+
+    /// <summary>NWNX hosts Anvil in a load context of its own, so Anvil's libraries are not in the default one.</summary>
+    private static IEnumerable<Assembly> LongLivedAssemblies()
+    {
+      return AssemblyLoadContext.All.Where(context => !context.IsCollectible).SelectMany(context => context.Assemblies).Distinct();
     }
 
     private static IEnumerable<Type> StaticCacheHolders(Assembly library)
@@ -243,7 +279,7 @@ namespace Anvil.Plugins
         return true;
       }
 
-      if (depth > 4 || valueType.IsPrimitive || !visited.Add(value))
+      if (depth > 6 || valueType.IsPrimitive || !visited.Add(value))
       {
         return false;
       }
@@ -292,7 +328,8 @@ namespace Anvil.Plugins
       }
 
       string? assemblyName = type.Assembly.GetName().Name;
-      return SweptLibraries.Contains(assemblyName) || type.Namespace?.StartsWith("System.Collections") == true || type.Namespace?.StartsWith("System.Runtime.CompilerServices") == true;
+      return SweptLibraries.Contains(assemblyName) || type.Namespace?.StartsWith("System.Collections") == true || type.Namespace?.StartsWith("System.Runtime.CompilerServices") == true
+        || type.Namespace == "System.Diagnostics.Metrics";
     }
 
     private static bool IsImmutableTree(Type type) => type.Assembly.GetName().Name == "LightInject" && type.Name.StartsWith("ImmutableHash");
