@@ -20,9 +20,13 @@ namespace Anvil.Plugins
 
     private const int PluginUnloadAttempts = 10;
     private const int PluginUnloadSleepMs = 5000;
+    private const int PluginUnloadGiveUpAfterSleeps = 3;
 
     [Inject]
     private InjectionService InjectionService { get; init; } = null!;
+
+    [Inject]
+    private IServiceManager ServiceManager { get; init; } = null!;
 
     internal List<Plugin> Plugins { get; } = new List<Plugin>();
 
@@ -218,6 +222,11 @@ namespace Anvil.Plugins
       Plugins.Clear();
       Plugins.TrimExcess();
 
+      if (EnvironmentConfig.ReloadEnabled)
+      {
+        CollectibleCacheSweeper.Sweep(ServiceManager.CoreServiceContainer);
+      }
+
       WaitForPendingUnloads(pendingUnloads);
     }
 
@@ -393,6 +402,12 @@ namespace Anvil.Plugins
       {
         GC.Collect();
         GC.WaitForPendingFinalizers();
+
+        if (unloadAttempt > PluginUnloadAttempts + PluginUnloadGiveUpAfterSleeps)
+        {
+          Log.Error("Plugins are still loaded after {Attempts} attempts, so the reload goes on with their old copies in memory", unloadAttempt);
+          return;
+        }
 
         if (unloadAttempt > PluginUnloadAttempts)
         {
