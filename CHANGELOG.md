@@ -16,8 +16,12 @@ https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 ### Fixed
 - TLS 1.3 connections failed on first read with `SSL_ERROR_SSL` under .NET 10 when hosted by nwserver, whose exported OpenSSL symbols take precedence. TLS resumption is now disabled in-process (`System.Net.Security.DisableTlsResume`), so each connection does a full handshake.
 - Isolated plugins can load at startup and reload alone (#880, #881, by jakkn): they load after the anvil container is built, `[ScriptHandler]` methods in them are dispatched, and event subscriptions and script handlers they leave behind are removed on unload. `EventService` and `ScriptHandleFactory` take a new `IServiceManager` constructor parameter.
+- A whole reload (`ANVIL_RELOAD_ENABLED`, `AnvilCore.Reload()`) now collects the old plugins instead of waiting on them forever. When plugins unload, Anvil drops what long-lived code still holds of them: the core container's caches, the static caches of Newtonsoft.Json, System.Text.Json and TypeDescriptor, Anvil's own static collections (queued closures included), runtime meters, `AppContext`/`AppDomain` event handlers, `ThreadLocal` instances reachable from the plugins' statics, and runtime timers (`Task.Delay` included) whose callbacks run plugin code. Only the first pass, before any collection, reads the unloading plugins themselves; later passes look only at long-lived objects (#390).
+- The unload wait collects every second for up to a minute and logs how long it took, where it used to sleep five seconds between collections and wait forever. A plugin still loaded after that is logged as an error and the reload goes on.
+- A closure the engine calls back after the plugin that queued it unloaded is skipped instead of throwing.
 
 ### Added
+- After a whole reload, services built by it hear `OnModuleLoad` once, in the module's script context, without the module's own script: the module loaded long before they subscribed.
 - `sow-release.yml`: a `v*-sow.*` tag builds this fork's packages for the Shadows over Westgate feed and its image at `ghcr.io/xtul9/anvil`.
 
 ## 8193.37.3 (NWN 8193.37-17)

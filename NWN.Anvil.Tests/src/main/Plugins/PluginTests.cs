@@ -196,6 +196,46 @@ namespace Anvil.Tests.Plugins
     }
 
     [Test]
+    public void PluginTypesCachedBySharedLibrariesAreReleasedOnUnloadTest()
+    {
+      const string pluginName = "SharedCacheTestPlugin";
+      const string serviceName = "SharedCacheTestService";
+
+      // Anvil's JSON library, System.Text.Json, TypeDescriptor and the runtime's meter list all outlive the plugin.
+      const string implementation =
+        """
+          private static readonly System.Diagnostics.Metrics.Meter Meter = new System.Diagnostics.Metrics.Meter("anvtest.shared_cache");
+
+          [Newtonsoft.Json.JsonObject]
+          public class Payload
+          {
+            [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
+            public DayOfWeek Day { get; set; } = DayOfWeek.Friday;
+          }
+
+          public void Init()
+          {
+            string newtonsoft = Newtonsoft.Json.JsonConvert.SerializeObject(new Payload());
+            Newtonsoft.Json.JsonConvert.DeserializeObject<Payload>(newtonsoft);
+            System.Text.Json.JsonSerializer.Deserialize<Payload>(System.Text.Json.JsonSerializer.Serialize(new Payload()));
+            System.ComponentModel.TypeDescriptor.GetConverter(typeof(Payload));
+            Meter.CreateObservableGauge("anvtest.shared_cache.gauge", () => 1);
+          }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), $"{nameof(Anvil)}.{nameof(Anvil.Services)}"],
+        [],
+        [nameof(IInitializable)],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
+
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [Test]
     public void PluginScriptHandlersRemovedOnUnloadTest()
     {
       const string pluginName = "ScriptHandleTestPlugin";

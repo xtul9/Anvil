@@ -34,6 +34,7 @@ namespace Anvil.Tests.Generators
         ..Assemblies.RuntimeAssemblies.Select(assemblyPath => MetadataReference.CreateFromFile(assemblyPath)),
         MetadataReference.CreateFromFile(typeof(AnvilCore).Assembly.Location),
         MetadataReference.CreateFromFile(typeof(AssemblyGenerator).Assembly.Location),
+        MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonConvert).Assembly.Location),
       ];
 
       return CSharpCompilation.Create(assemblyName, [tree], references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Debug, assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));

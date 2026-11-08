@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading;
 using Anvil.API;
 using Anvil.Internal;
@@ -19,8 +20,9 @@ namespace Anvil.Plugins
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private const int PluginUnloadAttempts = 10;
-    private const int PluginUnloadSleepMs = 5000;
-    private const int PluginUnloadGiveUpAfterSleeps = 3;
+    private const int PluginUnloadSleepMs = 1000;
+    private const int PluginUnloadGiveUpAfterSleeps = 60;
+    private const int PluginUnloadSweepEverySleeps = 5;
 
     [Inject]
     private InjectionService InjectionService { get; init; } = null!;
@@ -159,6 +161,7 @@ namespace Anvil.Plugins
       }
 
       WeakReference pluginRef = UnloadPluginInternal(plugin, waitForUnload);
+      SweepCachedReferences([pluginRef], true);
       if (waitForUnload)
       {
         WaitForPendingUnloads(new Dictionary<WeakReference, string>
@@ -222,11 +225,7 @@ namespace Anvil.Plugins
       Plugins.Clear();
       Plugins.TrimExcess();
 
-      if (EnvironmentConfig.ReloadEnabled)
-      {
-        CollectibleCacheSweeper.Sweep(ServiceManager.CoreServiceContainer);
-      }
-
+      SweepCachedReferences(pendingUnloads.Keys, true);
       WaitForPendingUnloads(pendingUnloads);
     }
 
@@ -278,7 +277,7 @@ namespace Anvil.Plugins
       {
         if (assemblyReference.IsAlive)
         {
-          if (attempt > PluginUnloadAttempts)
+          if (attempt > PluginUnloadAttempts && attempt % PluginUnloadAttempts == 0)
           {
             Log.Warn($"Plugin '{pluginName}' is preventing unload, attempt {attempt}");
           }
@@ -396,8 +395,14 @@ namespace Anvil.Plugins
       return null;
     }
 
+    private void SweepCachedReferences(IEnumerable<WeakReference> unloadedContexts, bool firstPass)
+    {
+      CollectibleCacheSweeper.Sweep(ServiceManager.CoreServiceContainer, unloadedContexts.Select(context => context.Target).OfType<AssemblyLoadContext>(), firstPass);
+    }
+
     private void WaitForPendingUnloads(Dictionary<WeakReference, string> pendingUnloads)
     {
+      System.Diagnostics.Stopwatch waited = System.Diagnostics.Stopwatch.StartNew();
       for (int unloadAttempt = 1; !IsUnloadComplete(pendingUnloads, unloadAttempt); unloadAttempt++)
       {
         GC.Collect();
@@ -411,9 +416,17 @@ namespace Anvil.Plugins
 
         if (unloadAttempt > PluginUnloadAttempts)
         {
+          // A dying plugin's background work (a final database flush) can still subscribe to something long-lived.
+          if ((unloadAttempt - PluginUnloadAttempts) % PluginUnloadSweepEverySleeps == 1)
+          {
+            SweepCachedReferences(pendingUnloads.Keys, false);
+          }
+
           Thread.Sleep(PluginUnloadSleepMs);
         }
       }
+
+      Log.Info("Unloaded {Count} plugin(s) in {Seconds:0.0}s", pendingUnloads.Count, waited.Elapsed.TotalSeconds);
     }
 
     private List<string> GetReferenceAssemblyPaths()
