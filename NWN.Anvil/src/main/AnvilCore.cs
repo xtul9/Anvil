@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Anvil.API;
-using Anvil.API.Events;
 using Anvil.Internal;
 using Anvil.Services;
 using LightInject;
@@ -62,27 +61,6 @@ namespace Anvil
       NWNXAPI.RegisterClosureHandler(&OnClosure);
       NWNXAPI.RegisterMainLoopHandler(&OnLoop);
       NWNXAPI.RegisterAssertHandler(&OnAssertFail);
-    }
-
-    /// <summary>
-    /// Initiates a complete reload of plugins and Anvil services.<br/>
-    /// This will reload all plugins.
-    /// </summary>
-    public static void Reload()
-    {
-      if (!EnvironmentConfig.ReloadEnabled)
-      {
-        Log.Error("Hot Reload of plugins is not enabled (ANVIL_RELOAD_ENABLED=true)");
-        return;
-      }
-
-      GetService<SchedulerService>()?.Schedule(() =>
-      {
-        Log.Info("Reloading Anvil");
-        instance.Unload();
-        instance.LoadAndStart();
-        instance.RaiseModuleLoadForReloadedServices();
-      }, TimeSpan.FromSeconds(0.1));
     }
 
     private void Init()
@@ -153,23 +131,6 @@ namespace Anvil
           $"You may experience crashes/undefined behaviour.\n" +
           $"See this page for troubleshooting: https://github.com/nwn-dotnet/Anvil/wiki/Troubleshooting-OpenSSL-Issues");
       }
-    }
-
-    /// <summary>
-    /// The module loaded long before a reload, so services built by it subscribed to <see cref="ModuleEvents.OnModuleLoad"/>
-    /// after the event fired. They hear it once more here, in the module's script context, without the module's own script.
-    /// </summary>
-    private void RaiseModuleLoadForReloadedServices()
-    {
-      EventService eventService = serviceManager.AnvilServiceContainer.GetInstance<EventService>();
-      VirtualMachine virtualMachine = serviceManager.CoreServiceContainer.GetInstance<VirtualMachine>();
-
-      Log.Info("Raising OnModuleLoad for the reloaded services");
-      virtualMachine.ExecuteInScriptContext(() =>
-      {
-        eventService.ProcessEvent(EventCallbackType.Before, new ModuleEvents.OnModuleLoad());
-        eventService.ProcessEvent(EventCallbackType.After, new ModuleEvents.OnModuleLoad());
-      }, NwModule.Instance);
     }
 
     private void LoadAndStart()

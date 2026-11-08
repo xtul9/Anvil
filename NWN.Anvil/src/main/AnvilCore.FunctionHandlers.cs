@@ -109,7 +109,11 @@ namespace Anvil
 
       try
       {
-        Closures[eid].Invoke();
+        // A closure is dropped when the plugin that queued it unloads; the engine still calls back for its id.
+        if (Closures.TryGetValue(eid, out Action? closure))
+        {
+          closure.Invoke();
+        }
       }
       catch (Exception e)
       {
@@ -123,6 +127,7 @@ namespace Anvil
     [UnmanagedCallersOnly]
     private static void OnLoop(ulong _)
     {
+      instance.reloadRecovery?.Poll();
       AnvilMessageService?.RunServerLoop();
     }
 
