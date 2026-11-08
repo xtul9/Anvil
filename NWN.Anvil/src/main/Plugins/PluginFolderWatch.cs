@@ -17,15 +17,19 @@ namespace Anvil.Plugins
     private readonly IReadOnlyList<string> roots;
     private readonly Action onQuietChange;
 
-    private DateTime newestSeen;
+    private long seen;
     private DateTime nextCheck = DateTime.MinValue;
     private DateTime? changedAt;
 
-    public PluginFolderWatch(IReadOnlyList<string> roots, Action onQuietChange)
+    /// <param name="roots">The plugin folders.</param>
+    /// <param name="loaded">The <see cref="Fingerprint"/> of the build that was loaded: a build published while it failed counts as new.</param>
+    /// <param name="onQuietChange">What to run once the folders differ from it and stay quiet.</param>
+    public PluginFolderWatch(IReadOnlyList<string> roots, long loaded, Action onQuietChange)
     {
       this.roots = roots;
       this.onQuietChange = onQuietChange;
-      newestSeen = NewestWrite();
+      seen = loaded;
+      changedAt = Fingerprint(roots) != loaded ? DateTime.UtcNow : null;
     }
 
     public void Poll()
@@ -37,10 +41,10 @@ namespace Anvil.Plugins
       }
 
       nextCheck = now + CheckInterval;
-      DateTime newest = NewestWrite();
-      if (newest > newestSeen)
+      long current = Fingerprint(roots);
+      if (current != seen)
       {
-        newestSeen = newest;
+        seen = current;
         changedAt = now;
         return;
       }
@@ -52,12 +56,18 @@ namespace Anvil.Plugins
       }
     }
 
-    private DateTime NewestWrite()
+    /// <summary>Every file's path, size and write time: a build moved in keeps the times it was built with, which may be older.</summary>
+    public static long Fingerprint(IReadOnlyList<string> roots)
     {
-      return roots.SelectMany(root => Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
-        .Select(File.GetLastWriteTimeUtc)
-        .DefaultIfEmpty(DateTime.MinValue)
-        .Max();
+      HashCode hash = new HashCode();
+      foreach (FileInfo file in roots.SelectMany(root => new DirectoryInfo(root).EnumerateFiles("*", SearchOption.AllDirectories)).OrderBy(file => file.FullName, StringComparer.Ordinal))
+      {
+        hash.Add(file.FullName);
+        hash.Add(file.Length);
+        hash.Add(file.LastWriteTimeUtc);
+      }
+
+      return hash.ToHashCode();
     }
   }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Anvil.API;
 using Anvil.API.Events;
 using Anvil.Internal;
@@ -45,20 +46,66 @@ namespace Anvil
 
     private void RunReload(uint requester, string? failureMessage)
     {
-      reloadRecovery = null;
       Log.Info("Reloading Anvil");
-      try
+      string? failure = TryRun(Unload);
+      if (failure != null)
       {
-        Unload();
+        FailReload(failure, requester, failureMessage, PluginFolderWatch.Fingerprint(PluginRoots()));
+        return;
+      }
+
+      LoadReloaded(requester, failureMessage);
+    }
+
+    private void LoadReloaded(uint requester, string? failureMessage)
+    {
+      reloadRecovery = null;
+      long loaded = PluginFolderWatch.Fingerprint(PluginRoots());
+      string? failure = TryRun(() =>
+      {
         LoadAndStart();
         RaiseModuleLoadForReloadedServices();
+      });
+
+      if (failure != null)
+      {
+        FailReload(failure, requester, failureMessage, loaded);
+      }
+    }
+
+    /// <summary>
+    /// The failure as text: an exception thrown in plugin code holds that code through its stack trace, and would keep
+    /// the plugins it should help unload in memory.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static string? TryRun(System.Action step)
+    {
+      try
+      {
+        step();
+        return null;
       }
       catch (Exception e)
       {
-        Log.Error(e, "Reload failed. Publish a working build: Anvil reloads again once the plugin folders are quiet");
-        TellRequester(requester, failureMessage);
-        reloadRecovery = new PluginFolderWatch(PluginRoots(), () => RunReload(requester, failureMessage));
+        return e.ToString();
       }
+    }
+
+    /// <summary>
+    /// Whatever the failed load built is unloaded at once, so no half-built set of plugins runs or waits to be unloaded
+    /// later. The server goes on with no plugins until a working build lands in the plugin folders.
+    /// </summary>
+    private void FailReload(string failure, uint requester, string? failureMessage, long loaded)
+    {
+      Log.Error("Reload failed. Publish a working build: Anvil loads it once the plugin folders are quiet\n{Failure}", failure);
+      string? unloadFailure = TryRun(Unload);
+      if (unloadFailure != null)
+      {
+        Log.Error("Unloading what the failed reload built failed too\n{Failure}", unloadFailure);
+      }
+
+      TellRequester(requester, failureMessage);
+      reloadRecovery = new PluginFolderWatch(PluginRoots(), loaded, () => LoadReloaded(requester, failureMessage));
     }
 
     /// <summary>
