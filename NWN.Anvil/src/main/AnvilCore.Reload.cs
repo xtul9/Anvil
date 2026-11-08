@@ -35,29 +35,45 @@ namespace Anvil
     /// <param name="failureMessage">What to tell them, colour tokens included.</param>
     public static void Reload(uint requester, string? failureMessage)
     {
+      ScheduleReload(new FailureAudience(requester, false, failureMessage));
+    }
+
+    /// <summary>
+    /// Initiates a complete reload of plugins and Anvil services, for a request no one creature made.<br/>
+    /// A reload that fails sends <paramref name="failureMessage"/> to every DM online, and reloads again by itself once a
+    /// new build lands in the plugin folders.
+    /// </summary>
+    /// <param name="failureMessage">What to tell them, colour tokens included.</param>
+    public static void ReloadTellingEveryDm(string failureMessage)
+    {
+      ScheduleReload(new FailureAudience(NwObject.Invalid, true, failureMessage));
+    }
+
+    private static void ScheduleReload(FailureAudience audience)
+    {
       if (!EnvironmentConfig.ReloadEnabled)
       {
         Log.Error("Hot Reload of plugins is not enabled (ANVIL_RELOAD_ENABLED=true)");
         return;
       }
 
-      GetService<SchedulerService>()?.Schedule(() => instance.RunReload(requester, failureMessage), TimeSpan.FromSeconds(0.1));
+      GetService<SchedulerService>()?.Schedule(() => instance.RunReload(audience), TimeSpan.FromSeconds(0.1));
     }
 
-    private void RunReload(uint requester, string? failureMessage)
+    private void RunReload(FailureAudience audience)
     {
       Log.Info("Reloading Anvil");
       string? failure = TryRun(Unload);
       if (failure != null)
       {
-        FailReload(failure, requester, failureMessage, PluginFolderWatch.Fingerprint(PluginRoots()));
+        FailReload(failure, audience, PluginFolderWatch.Fingerprint(PluginRoots()));
         return;
       }
 
-      LoadReloaded(requester, failureMessage);
+      LoadReloaded(audience);
     }
 
-    private void LoadReloaded(uint requester, string? failureMessage)
+    private void LoadReloaded(FailureAudience audience)
     {
       reloadRecovery = null;
       long loaded = PluginFolderWatch.Fingerprint(PluginRoots());
@@ -69,7 +85,7 @@ namespace Anvil
 
       if (failure != null)
       {
-        FailReload(failure, requester, failureMessage, loaded);
+        FailReload(failure, audience, loaded);
       }
     }
 
@@ -95,7 +111,7 @@ namespace Anvil
     /// Whatever the failed load built is unloaded at once, so no half-built set of plugins runs or waits to be unloaded
     /// later. The server goes on with no plugins until a working build lands in the plugin folders.
     /// </summary>
-    private void FailReload(string failure, uint requester, string? failureMessage, long loaded)
+    private void FailReload(string failure, FailureAudience audience, long loaded)
     {
       Log.Error("Reload failed. Publish a working build: Anvil loads it once the plugin folders are quiet\n{Failure}", failure);
       string? unloadFailure = TryRun(Unload);
@@ -104,8 +120,8 @@ namespace Anvil
         Log.Error("Unloading what the failed reload built failed too\n{Failure}", unloadFailure);
       }
 
-      TellRequester(requester, failureMessage);
-      reloadRecovery = new PluginFolderWatch(PluginRoots(), loaded, () => LoadReloaded(requester, failureMessage));
+      Tell(audience);
+      reloadRecovery = new PluginFolderWatch(PluginRoots(), loaded, () => LoadReloaded(audience));
     }
 
     /// <summary>
@@ -125,16 +141,28 @@ namespace Anvil
       }, NwModule.Instance);
     }
 
-    private void TellRequester(uint requester, string? message)
+    private void Tell(FailureAudience audience)
     {
-      if (requester == NwObject.Invalid || message == null)
+      if (audience.FailureMessage is not { } message || (!audience.EveryDm && audience.Requester == NwObject.Invalid))
       {
         return;
       }
 
       VirtualMachine virtualMachine = serviceManager.CoreServiceContainer.GetInstance<VirtualMachine>();
-      virtualMachine.ExecuteInScriptContext(() => NWScript.SendMessageToPC(requester, message));
+      virtualMachine.ExecuteInScriptContext(() =>
+      {
+        if (audience.EveryDm)
+        {
+          NWScript.SendMessageToAllDMs(message);
+        }
+        else
+        {
+          NWScript.SendMessageToPC(audience.Requester, message);
+        }
+      });
     }
+
+    private readonly record struct FailureAudience(uint Requester, bool EveryDm, string? FailureMessage);
 
     private static IReadOnlyList<string> PluginRoots()
     {
