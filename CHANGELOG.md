@@ -22,6 +22,7 @@ https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 
 ### Added
 - `AnvilCore.Reload(requester, failureMessage)`: a whole reload that fails sends the message to that creature, unloads whatever the failed load built at once, and loads again by itself once the plugin folders differ from the build that failed and stay quiet for two seconds. The failure is kept as text, since an exception from plugin code holds that code. `AnvilCore.Reload()` reloads the same way with no one to tell.
+- `AnvilCore.ReloadTellingEveryDm(failureMessage)`: a whole reload no one creature asked for, which sends the message to every DM online when it fails.
 - After a whole reload, services built by it hear `OnModuleLoad` once, in the module's script context, without the module's own script: the module loaded long before they subscribed.
 - `sow-release.yml`: a `v*-sow.*` tag builds this fork's packages for the Shadows over Westgate feed and its image at `ghcr.io/xtul9/anvil`.
 
