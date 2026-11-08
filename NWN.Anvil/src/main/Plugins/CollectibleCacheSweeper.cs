@@ -99,7 +99,6 @@ namespace Anvil.Plugins
 
       removed += sweeper.DisposeMeters();
       removed += sweeper.PruneProcessEvents();
-      removed += firstPass ? sweeper.DisposeThreadLocals() : 0;
       removed += sweeper.DisposeTimers();
 
       Log.Info("Dropped {Count} cached references to the {Plugins} plugin(s) being unloaded: {Dropped}", removed, sweeper.unloading.Count,
@@ -400,6 +399,23 @@ namespace Anvil.Plugins
     /// other instance of that type, so one a plugin never disposed stays reachable from the next copy's, with its
     /// values (prometheus-net's collect callbacks live in one). Disposing it clears its slot on every thread.
     /// </summary>
+    /// <remarks>
+    /// Run before the plugins unload: it reads their statics, and once a plugin's context is unloading a collection may
+    /// tear it down under the reader.
+    /// </remarks>
+    public static void DisposeThreadLocalsOf(IReadOnlyCollection<AssemblyLoadContext> loaded)
+    {
+      try
+      {
+        int disposed = new CollectibleCacheSweeper(loaded).DisposeThreadLocals();
+        Log.Info("Disposed {Count} thread-local(s) the plugins about to unload hold", disposed);
+      }
+      catch (Exception e)
+      {
+        Log.Error(e, "Disposing the plugins' thread-locals failed; they may stay in memory");
+      }
+    }
+
     private int DisposeThreadLocals()
     {
       HashSet<object> visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
