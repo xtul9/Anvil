@@ -10,7 +10,7 @@ https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 
 ### Package Updates
 - .NET 8 -> .NET 10. Plugins that reference this package must target `net10.0`.
-- System.Reflection.MetadataLoadContext: 8.0.1 -> 10.0.14
+- System.Reflection.MetadataLoadContext: 8.0.1 -> 10.0.15
 - NuGet.Packaging: pinned to 5.11.7 (GHSA-g4vj-cjjj-v7hg, through Paket.Core; restore fails on it under .NET 10's transitive audit)
 
 ### Fixed
