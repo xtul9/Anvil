@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Anvil.API;
 using Anvil.Plugins;
@@ -233,6 +234,75 @@ namespace Anvil.Tests.Plugins
       WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
 
       WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [Test]
+    public void PluginUnloadRunsNoStaticConstructorOfATypeThePluginNeverUsedTest()
+    {
+      const string pluginName = "UnusedTypeTestPlugin";
+      const string serviceName = "UnusedTypeTestService";
+      const string constructorRan = "anvtest.unused_type.constructor_ran";
+
+      const string implementation =
+        $$"""
+          public static class NeverUsed
+          {
+            public static readonly object Marker = Mark();
+
+            private static object Mark()
+            {
+              AppContext.SetData("{{constructorRan}}", "yes");
+              return new object();
+            }
+          }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName, [nameof(System)], [], [], implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
+
+      Assert.That(AppContext.GetData(constructorRan), Is.Null);
+      WaitAndCheckForPluginUnload(pluginRef);
+    }
+
+    [Test]
+    public void PluginUnloadDisposesThreadLocalsThePluginLeftInItsStaticsTest()
+    {
+      const string pluginName = "ThreadLocalTestPlugin";
+      const string serviceName = "ThreadLocalTestService";
+      const string leftBehind = "anvtest.thread_local.left_behind";
+
+      const string implementation =
+        $$"""
+          private static readonly System.Threading.ThreadLocal<string> Local = new System.Threading.ThreadLocal<string>();
+
+          public void Init()
+          {
+            Local.Value = "value";
+            AppContext.SetData("{{leftBehind}}", Local);
+          }
+        """;
+
+      string source = PluginTestUtils.GenerateServiceClass(serviceName,
+        [nameof(System), $"{nameof(Anvil)}.{nameof(Anvil.Services)}"],
+        [],
+        [nameof(IInitializable)],
+        implementation);
+
+      string pluginPath = CreatePlugin(pluginName, source);
+      try
+      {
+        WeakReference pluginRef = RunPluginLoadAndUnload(pluginPath, serviceName);
+
+        ThreadLocal<string> local = (ThreadLocal<string>)AppContext.GetData(leftBehind)!;
+        Assert.That(() => local.Value, Throws.TypeOf<ObjectDisposedException>());
+        WaitAndCheckForPluginUnload(pluginRef);
+      }
+      finally
+      {
+        AppContext.SetData(leftBehind, null);
+      }
     }
 
     [Test]

@@ -401,7 +401,8 @@ namespace Anvil.Plugins
     /// </summary>
     /// <remarks>
     /// Run before the plugins unload: it reads their statics, and once a plugin's context is unloading a collection may
-    /// tear it down under the reader.
+    /// tear it down under the reader. Only a type whose static constructor has finished is read. Reading any other runs
+    /// its constructor, plugin code nobody asked for in a plugin whose services are gone, and that has crashed the server.
     /// </remarks>
     public static void DisposeThreadLocalsOf(IReadOnlyCollection<AssemblyLoadContext> loaded)
     {
@@ -418,6 +419,13 @@ namespace Anvil.Plugins
 
     private int DisposeThreadLocals()
     {
+      StaticsProbe? statics = StaticsProbe.TryCreate();
+      if (statics == null)
+      {
+        Log.Warn("This runtime does not show which types have run their static constructor; the plugins' thread-locals stay undisposed");
+        return 0;
+      }
+
       HashSet<object> visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
       List<IDisposable> threadLocals = [];
       foreach (Assembly assembly in unloading.SelectMany(context => context.Assemblies))
@@ -432,7 +440,7 @@ namespace Anvil.Plugins
           types = e.Types.OfType<Type>().ToArray();
         }
 
-        foreach (Type type in types.Where(type => !type.IsGenericTypeDefinition))
+        foreach (Type type in types.Where(type => !type.IsGenericTypeDefinition && statics.AreReady(type)))
         {
           foreach (FieldInfo field in type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
           {
