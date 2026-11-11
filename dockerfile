@@ -1,10 +1,9 @@
 # Load nwnx image to import nwserver + nwnx plugins
-FROM nwnxee/unified:73cf6ab as nwnx
+FROM nwnxee/unified:3d4c4e1 as nwnx
 
 # Remove incompatible plugins
 RUN rm -rf /nwn/nwnx/NWNX_Ruby.so \
-    /nwn/nwnx/NWNX_SpellChecker.so \
-    /nwn/nwnx/NWNX_Redis.so
+    /nwn/nwnx/NWNX_SpellChecker.so
 
 FROM debian:trixie-slim
 
@@ -31,8 +30,8 @@ RUN apt-get update \
 && rm packages-microsoft-prod.deb \
 && apt-get update \
 && apt-get install -y --no-install-recommends \
-    dotnet-runtime-8.0 \
-    dotnet-apphost-pack-8.0 \
+    dotnet-runtime-10.0 \
+    dotnet-apphost-pack-10.0 \
 && rm -rf /var/cache/apt /var/lib/apt/lists/*
 
 # Copy Anvil Binaries
@@ -83,7 +82,6 @@ ENV DOTNET_DbgMiniDumpName=/nwn/run/logs.0/anvil-crash-%t.dmp
 ENV DOTNET_CreateDumpLogToFile=/nwn/run/logs.0/anvil-crash.log
 
 #Force .NET to use OpenSSL 1.1.1
-ENV CLR_OPENSSL_VERSION_OVERRIDE=1.1
 ENV DOTNET_OPENSSL_VERSION_OVERRIDE=1.1
 
 # Entrypoint & Executable

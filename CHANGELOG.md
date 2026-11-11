@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Pending Changes
 https://github.com/nwn-dotnet/Anvil/compare/v8193.37.3...HEAD
 
+### Package Updates
+- .NET 8 -> .NET 10. Plugins that reference this package must target `net10.0`.
+- System.Reflection.MetadataLoadContext: 8.0.1 -> 10.0.15
+- NuGet.Packaging: pinned to 5.11.7 (GHSA-g4vj-cjjj-v7hg, through Paket.Core; restore fails on it under .NET 10's transitive audit)
+
+### Fixed
+- TLS 1.3 connections failed on first read with `SSL_ERROR_SSL` under .NET 10 when hosted by nwserver, whose exported OpenSSL symbols take precedence. TLS resumption is now disabled in-process (`System.Net.Security.DisableTlsResume`), so each connection does a full handshake.
+- Isolated plugins can load at startup and reload alone (#880, #881, by jakkn): they load after the anvil container is built, `[ScriptHandler]` methods in them are dispatched, and event subscriptions and script handlers they leave behind are removed on unload. `EventService` and `ScriptHandleFactory` take a new `IServiceManager` constructor parameter.
+- A whole reload (`ANVIL_RELOAD_ENABLED`, `AnvilCore.Reload()`) now collects the old plugins instead of waiting on them forever. When plugins unload, Anvil drops what long-lived code still holds of them: the core container's caches, the static caches of Newtonsoft.Json, System.Text.Json and TypeDescriptor, Anvil's own static collections (queued closures included), runtime meters, `AppContext`/`AppDomain` event handlers, and runtime timers (`Task.Delay` included) whose callbacks run plugin code. `ThreadLocal` instances reachable from the plugins' statics are disposed before the plugins unload, the only step that reads the plugins themselves; the sweeps after it look only at long-lived objects (#390).
+- The unload wait collects every second for up to a minute and logs how long it took, where it used to sleep five seconds between collections and wait forever. A plugin still loaded after that is logged as an error and the reload goes on.
+- A closure the engine calls back after the plugin that queued it unloaded is skipped instead of throwing.
+- Unloading plugins no longer runs the static constructor of a plugin type nothing had used: the search for `ThreadLocal` instances reads only types whose static constructor has finished. It read every static by reflection before, which ran those constructors in plugins whose services were already disposed.
+
+### Added
+- `AnvilCore.Reload(requester, failureMessage)`: a whole reload that fails sends the message to that creature, unloads whatever the failed load built at once, and loads again by itself once the plugin folders differ from the build that failed and stay quiet for two seconds. The failure is kept as text, since an exception from plugin code holds that code. `AnvilCore.Reload()` reloads the same way with no one to tell.
+- `AnvilCore.ReloadTellingEveryDm(failureMessage)`: a whole reload no one creature asked for, which sends the message to every DM online when it fails.
+- After a whole reload, services built by it hear `OnModuleLoad` once, in the module's script context, without the module's own script: the module loaded long before they subscribed.
+- `sow-release.yml`: a `v*-sow.*` tag builds this fork's packages for the Shadows over Westgate feed and its image at `ghcr.io/xtul9/anvil`.
+
 ## 8193.37.3 (NWN 8193.37-17)
 https://github.com/nwn-dotnet/Anvil/compare/v8193.37.2...v8193.37.3
 

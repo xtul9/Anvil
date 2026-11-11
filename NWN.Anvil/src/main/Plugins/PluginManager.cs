@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading;
 using Anvil.API;
 using Anvil.Internal;
@@ -19,10 +20,15 @@ namespace Anvil.Plugins
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
     private const int PluginUnloadAttempts = 10;
-    private const int PluginUnloadSleepMs = 5000;
+    private const int PluginUnloadSleepMs = 1000;
+    private const int PluginUnloadGiveUpAfterSleeps = 60;
+    private const int PluginUnloadSweepEverySleeps = 5;
 
     [Inject]
     private InjectionService InjectionService { get; init; } = null!;
+
+    [Inject]
+    private IServiceManager ServiceManager { get; init; } = null!;
 
     internal List<Plugin> Plugins { get; } = new List<Plugin>();
 
@@ -154,7 +160,9 @@ namespace Anvil.Plugins
         throw new InvalidOperationException($"Non-isolated plugin {plugin.Name} may not be unloaded at runtime.");
       }
 
+      CollectibleCacheSweeper.DisposeThreadLocalsOf(CollectibleContextsOf([plugin]));
       WeakReference pluginRef = UnloadPluginInternal(plugin, waitForUnload);
+      SweepCachedReferences([pluginRef], true);
       if (waitForUnload)
       {
         WaitForPendingUnloads(new Dictionary<WeakReference, string>
@@ -187,7 +195,13 @@ namespace Anvil.Plugins
 
     void ICoreService.Shutdown() {}
 
-    void ICoreService.Start()
+    void ICoreService.Start() {}
+
+    /// <summary>
+    /// Loads the isolated plugins found at startup.<br/>
+    /// Called once the anvil service container is constructed, as isolated plugins depend on its services and static injections.
+    /// </summary>
+    internal void LoadIsolatedPlugins()
     {
       LoadPlugins(true);
     }
@@ -197,6 +211,7 @@ namespace Anvil.Plugins
       Log.Info("Unloading plugins...");
 
       Dictionary<WeakReference, string> pendingUnloads = new Dictionary<WeakReference, string>();
+      CollectibleCacheSweeper.DisposeThreadLocalsOf(CollectibleContextsOf(Plugins));
 
       foreach (Plugin plugin in Plugins)
       {
@@ -212,6 +227,7 @@ namespace Anvil.Plugins
       Plugins.Clear();
       Plugins.TrimExcess();
 
+      SweepCachedReferences(pendingUnloads.Keys, true);
       WaitForPendingUnloads(pendingUnloads);
     }
 
@@ -263,7 +279,7 @@ namespace Anvil.Plugins
       {
         if (assemblyReference.IsAlive)
         {
-          if (attempt > PluginUnloadAttempts)
+          if (attempt > PluginUnloadAttempts && attempt % PluginUnloadAttempts == 0)
           {
             Log.Warn($"Plugin '{pluginName}' is preventing unload, attempt {attempt}");
           }
@@ -381,18 +397,48 @@ namespace Anvil.Plugins
       return null;
     }
 
+    private static List<AssemblyLoadContext> CollectibleContextsOf(IEnumerable<Plugin> plugins)
+    {
+      return plugins.Where(plugin => plugin.Assembly != null)
+        .Select(plugin => AssemblyLoadContext.GetLoadContext(plugin.Assembly!))
+        .OfType<AssemblyLoadContext>()
+        .Where(context => context.IsCollectible)
+        .Distinct()
+        .ToList();
+    }
+
+    private void SweepCachedReferences(IEnumerable<WeakReference> unloadedContexts, bool firstPass)
+    {
+      CollectibleCacheSweeper.Sweep(ServiceManager.CoreServiceContainer, unloadedContexts.Select(context => context.Target).OfType<AssemblyLoadContext>(), firstPass);
+    }
+
     private void WaitForPendingUnloads(Dictionary<WeakReference, string> pendingUnloads)
     {
+      System.Diagnostics.Stopwatch waited = System.Diagnostics.Stopwatch.StartNew();
       for (int unloadAttempt = 1; !IsUnloadComplete(pendingUnloads, unloadAttempt); unloadAttempt++)
       {
         GC.Collect();
         GC.WaitForPendingFinalizers();
 
+        if (unloadAttempt > PluginUnloadAttempts + PluginUnloadGiveUpAfterSleeps)
+        {
+          Log.Error("Plugins are still loaded after {Attempts} attempts, so the reload goes on with their old copies in memory", unloadAttempt);
+          return;
+        }
+
         if (unloadAttempt > PluginUnloadAttempts)
         {
+          // A dying plugin's background work (a final database flush) can still subscribe to something long-lived.
+          if ((unloadAttempt - PluginUnloadAttempts) % PluginUnloadSweepEverySleeps == 1)
+          {
+            SweepCachedReferences(pendingUnloads.Keys, false);
+          }
+
           Thread.Sleep(PluginUnloadSleepMs);
         }
       }
+
+      Log.Info("Unloaded {Count} plugin(s) in {Seconds:0.0}s", pendingUnloads.Count, waited.Elapsed.TotalSeconds);
     }
 
     private List<string> GetReferenceAssemblyPaths()
