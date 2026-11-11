@@ -158,7 +158,7 @@ namespace Anvil.Services
       // nothing else we need to do, the hooks will take care of doing the renames. If we don't skip this
       // then the SendServerToPlayerPlayerList_All in the SendNameUpdate below runs before the server has even ran a
       // SendServerToPlayerPlayerList_Add and weird things happen(tm)
-      if (PlayerListNameType != OverrideNameType.Original && renameAddedToPlayerList.Contains(target))
+      if (PlayerListNameType != OverrideNameType.Original && !renameAddedToPlayerList.Contains(target))
       {
         return;
       }
@@ -187,7 +187,7 @@ namespace Anvil.Services
       // nothing else we need to do, the hooks will take care of doing the renames. If we don't skip this
       // then the SendServerToPlayerPlayerList_All in the SendNameUpdate below runs before the server has even ran a
       // SendServerToPlayerPlayerList_Add and weird things happen(tm)
-      if (PlayerListNameType != OverrideNameType.Original && renameAddedToPlayerList.Contains(target))
+      if (PlayerListNameType != OverrideNameType.Original && !renameAddedToPlayerList.Contains(target))
       {
         return;
       }
