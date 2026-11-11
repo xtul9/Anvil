@@ -8,7 +8,7 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when an effect is about to be removed from a creature.
+  /// Called when an effect is about to be removed from a creature.
   /// </summary>
   public sealed class OnEffectRemove : IEvent
   {
@@ -23,7 +23,7 @@ namespace Anvil.API.Events
     public NwObject Object { get; private init; } = null!;
 
     /// <summary>
-    /// Set to true to prevent this effect from being removed.
+    /// Gets or sets whether this effect should be prevented from being removed.
     /// </summary>
     public bool PreventRemove { get; set; }
 

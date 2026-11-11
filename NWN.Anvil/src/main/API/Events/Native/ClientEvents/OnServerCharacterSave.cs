@@ -8,13 +8,10 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when the server is about to save a character to the server vault.<br/>
-  /// This is called once for every character when the server is exiting, when a player leaves the server,
-  /// or when <see cref="NwPlayer.ExportCharacter"/> &amp; <see cref="NwModule.ExportAllCharacters"/> is called.<br/>
-  /// Set <see cref="OnServerCharacterSave.PreventSave"/> to skip saving the character.
+  /// Called when the server is about to save a character to the server vault.<br/>
+  /// This is called once for every character when the server is exiting, when a player leaves the server, or when ExportSingleCharacter() &amp; ExportAllCharacters() is called.<br/>
+  /// This event can be skipped to prevent the character from being saved.
   /// </summary>
-  /// <seealso cref="NwPlayer.ExportCharacter"/>
-  /// <seealso cref="NwModule.ExportAllCharacters"/>
   public sealed class OnServerCharacterSave : IEvent
   {
     /// <summary>

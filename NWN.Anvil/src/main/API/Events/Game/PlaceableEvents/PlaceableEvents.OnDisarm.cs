@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when <see cref="NwPlaceable"/> is disarmed.
+    /// Called when <see cref="NwPlaceable"/> has been disarmed.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnDisarm)]
     public sealed class OnDisarm : IEvent

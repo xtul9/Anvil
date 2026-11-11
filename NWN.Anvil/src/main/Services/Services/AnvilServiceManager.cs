@@ -107,7 +107,6 @@ namespace Anvil.Services
       anvilCoreServiceManager.Start();
       AnvilServiceContainer.ConstructAllServices();
       OnContainerCreate?.Invoke(AnvilServiceContainer, null);
-      pluginManager.LoadIsolatedPlugins();
     }
 
     void IServiceManager.Unload()

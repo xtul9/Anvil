@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class TriggerEvents
   {
-    /// <summary>
-    /// Triggered when an object enters an <see cref="NwTrigger"/>.
-    /// </summary>
     [GameEvent(EventScriptType.TriggerOnObjectEnter)]
     public sealed class OnEnter : IEvent
     {

@@ -8,12 +8,12 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a <see cref="API.Effect.DispelMagicAll"/> or <see cref="API.Effect.DispelMagicBest"/> effect is applied to an object.
+  /// Called when a <see cref="API.Effect.DispelMagicAll"/> or <see cref="API.Effect.DispelMagicBest"/> effect is applied to an object.
   /// </summary>
   public sealed class OnDispelMagicApply : IEvent
   {
     /// <summary>
-    /// Gets the object whose spell effects are being dispelled.
+    /// Gets the object who is having spell effects dispelled.
     /// </summary>
     public NwGameObject Object { get; private init; } = null!;
 
@@ -33,7 +33,7 @@ namespace Anvil.API.Events
     public int NumEffectsDispelled { get; private set; }
 
     /// <summary>
-    /// Set to true to skip dispelling.
+    /// Gets or sets if dispelling should be skipped.
     /// </summary>
     public bool Skip { get; set; }
 

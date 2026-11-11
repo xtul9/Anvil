@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class TriggerEvents
   {
-    /// <summary>
-    /// Triggered when a <see cref="NwTrigger"/> is disarmed.
-    /// </summary>
     [GameEvent(EventScriptType.TriggerOnDisarmed)]
     public sealed class OnDisarmed : IEvent
     {

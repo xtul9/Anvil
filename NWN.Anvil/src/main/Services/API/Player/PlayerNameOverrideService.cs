@@ -158,7 +158,7 @@ namespace Anvil.Services
       // nothing else we need to do, the hooks will take care of doing the renames. If we don't skip this
       // then the SendServerToPlayerPlayerList_All in the SendNameUpdate below runs before the server has even ran a
       // SendServerToPlayerPlayerList_Add and weird things happen(tm)
-      if (PlayerListNameType != OverrideNameType.Original && !renameAddedToPlayerList.Contains(target))
+      if (PlayerListNameType != OverrideNameType.Original && renameAddedToPlayerList.Contains(target))
       {
         return;
       }
@@ -187,7 +187,7 @@ namespace Anvil.Services
       // nothing else we need to do, the hooks will take care of doing the renames. If we don't skip this
       // then the SendServerToPlayerPlayerList_All in the SendNameUpdate below runs before the server has even ran a
       // SendServerToPlayerPlayerList_Add and weird things happen(tm)
-      if (PlayerListNameType != OverrideNameType.Original && !renameAddedToPlayerList.Contains(target))
+      if (PlayerListNameType != OverrideNameType.Original && renameAddedToPlayerList.Contains(target))
       {
         return;
       }
@@ -241,9 +241,9 @@ namespace Anvil.Services
 
       OriginalNames originalNames = new OriginalNames
       {
-        FirstName = creature.m_pStats.m_lsFirstName.ExtractLocString(),
-        LastName = creature.m_pStats.m_lsLastName.ExtractLocString(),
-        PlayerName = LowLevel.ServerExoApp.GetNetLayer().GetPlayerInfo(player.Player.m_nPlayerID).m_sPlayerName.ToString() ?? "",
+        FirstName = creature.m_pStats.m_lsFirstName,
+        LastName = creature.m_pStats.m_lsLastName,
+        PlayerName = LowLevel.ServerExoApp.GetNetLayer().GetPlayerInfo(player.Player.m_nPlayerID).m_sPlayerName,
       };
 
       renameOriginalNames[player] = originalNames;
@@ -468,8 +468,8 @@ namespace Anvil.Services
       {
         if (nameType != OverrideNameType.Original)
         {
-          targetCreature.m_pStats.m_lsFirstName = originalName.FirstName.ToExoLocString();
-          targetCreature.m_pStats.m_lsLastName = originalName.LastName.ToExoLocString();
+          targetCreature.m_pStats.m_lsFirstName = originalName.FirstName;
+          targetCreature.m_pStats.m_lsLastName = originalName.LastName;
         }
 
         targetCreature.m_sDisplayName = OverwriteDisplayName ? nameOverride.CharacterNameInternal : "".ToExoString();

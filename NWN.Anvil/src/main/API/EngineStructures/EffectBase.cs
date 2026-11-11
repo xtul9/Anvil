@@ -4,12 +4,9 @@ using NWN.Native.API;
 
 namespace Anvil.API
 {
-  /// <summary>
-  /// Base type for effect and item property engine structures, exposing parameter arrays and common metadata.
-  /// </summary>
   public abstract class EffectBase : EngineStructure
   {
-    private protected readonly CGameEffect Effect;
+    protected readonly CGameEffect Effect;
 
     private protected unsafe EffectBase(CGameEffect effect, bool memoryOwn) : base(effect.Pointer, memoryOwn)
     {
@@ -56,9 +53,6 @@ namespace Anvil.API
       set => Effect.m_oidCreator = value;
     }
 
-    /// <summary>
-    /// Gets or sets the Expose internal effect flag.
-    /// </summary>
     public bool Expose
     {
       get => Effect.m_bExpose.ToBool();
@@ -108,11 +102,6 @@ namespace Anvil.API
     /// </summary>
     public EffectParams<Vector3> VectorParams { get; }
 
-    /// <summary>
-    /// Converts an <see cref="EffectBase"/> to its native <see cref="CGameEffect"/> handle.
-    /// </summary>
-    /// <param name="effect">The managed effect wrapper to convert.</param>
-    /// <returns>The underlying <see cref="CGameEffect"/>.</returns>
     public static implicit operator CGameEffect(EffectBase effect)
     {
       return effect.Effect;

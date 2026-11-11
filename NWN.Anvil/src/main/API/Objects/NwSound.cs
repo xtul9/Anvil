@@ -33,7 +33,6 @@ namespace Anvil.API
       return soundObject != null && soundObject.Pointer != IntPtr.Zero ? new NwSound(soundObject) : null;
     }
 
-    /// <inheritdoc/>
     public override bool IsValid => NWNXUtils.AsNWSSoundObject(NWNXUtils.GetGameObject(ObjectId)) == soundObject.Pointer;
 
     /// <summary>

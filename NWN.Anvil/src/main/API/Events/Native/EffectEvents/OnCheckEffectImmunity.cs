@@ -8,23 +8,23 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when an effect checks for creature immunities.<br/>
+  /// Called when an effect is checking for creature immunities.<br/>
   /// Use this event to force an effect to bypass creature immunities.
   /// </summary>
   public sealed class OnCheckEffectImmunity : IEvent
   {
     /// <summary>
-    /// Set to true to ignore the specified immunity and apply the effect.
+    /// Gets or sets whether the specified immunity should be ignored, and the effect applied regardless.
     /// </summary>
     public bool Bypass { get; set; }
 
     /// <summary>
-    /// Gets the creature that the effect is being applied to.
+    /// The creature that the effect is being applied to.
     /// </summary>
     public NwCreature Creature { get; private init; } = null!;
 
     /// <summary>
-    /// Gets the type of immunity being checked.
+    /// The type of immunity being checked.
     /// </summary>
     public ImmunityType ImmunityType { get; private init; }
 

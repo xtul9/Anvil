@@ -1,8 +1,5 @@
 namespace Anvil.API
 {
-  /// <summary>
-  /// Conditions under which a draw list item should render.
-  /// </summary>
   public enum NuiDrawListItemRender
   {
     /// <summary>

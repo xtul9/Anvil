@@ -7,10 +7,12 @@ using NWN.Native.API;
 
 namespace Anvil.API
 {
+  //! ## Examples
+  //! @include XPReportService.cs
+
   /// <summary>
   /// A two dimensional array data resource.
   /// </summary>
-  /// <example>[!code-csharp[](~/../NWN.Anvil.Samples/src/main/Services/XPReportService.cs)]</example>
   public class TwoDimArray
   {
     private readonly string?[,] arrayData;

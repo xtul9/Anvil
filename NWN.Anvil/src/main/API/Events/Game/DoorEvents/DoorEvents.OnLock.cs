@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class DoorEvents
   {
-    /// <summary>
-    /// Triggered when the door is locked.
-    /// </summary>
     [GameEvent(EventScriptType.DoorOnLock)]
     public sealed class OnLock : IEvent
     {
@@ -21,7 +18,7 @@ namespace Anvil.API.Events
       public NwDoor Door { get; }
 
       /// <summary>
-      /// Gets the creature that locked the door.
+      /// Gets the <see cref="NwCreature"/> that locked this <see cref="NwDoor"/>.
       /// </summary>
       public NwCreature LockedBy { get; }
 

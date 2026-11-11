@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class CreatureEvents
   {
     /// <summary>
-    /// Triggered when the creature takes damage from a game object.
+    /// Triggered by <see cref="NwCreature"/> when taken damage from <see cref="NwGameObject"/>.
     /// </summary>
     [GameEvent(EventScriptType.CreatureOnDamaged)]
     public sealed class OnDamaged : IEvent
@@ -21,7 +21,7 @@ namespace Anvil.API.Events
       public NwCreature Creature { get; }
 
       /// <summary>
-      /// Gets the total damage dealt to the creature.
+      /// Gets the amount of damage done by <see cref="NwGameObject"/> to <see cref="NwCreature"/>.
       /// </summary>
       public int DamageAmount { get; }
 
@@ -31,7 +31,7 @@ namespace Anvil.API.Events
       public NwGameObject Damager { get; }
 
       /// <summary>
-      /// Gets the damage dealt to the creature by type.
+      /// Gets damage dealt to <see cref="NwCreature"/>, by <see cref="DamageType"/>.
       /// </summary>
       public int GetDamageDealtByType(DamageType damageType)
       {

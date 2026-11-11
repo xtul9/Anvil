@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class DoorEvents
   {
-    /// <summary>
-    /// Triggered when the door opens.
-    /// </summary>
     [GameEvent(EventScriptType.DoorOnOpen)]
     public sealed class OnOpen : IEvent
     {
@@ -21,7 +18,7 @@ namespace Anvil.API.Events
       public NwDoor Door { get; }
 
       /// <summary>
-      /// Gets the game object that opened the door.
+      /// Gets the <see cref="NwCreature"/> that opened the <see cref="NwDoor"/>.
       /// </summary>
       public NwGameObject OpenedBy { get; }
 

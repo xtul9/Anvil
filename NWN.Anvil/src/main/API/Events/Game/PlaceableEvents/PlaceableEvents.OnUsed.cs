@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when <see cref="NwPlaceable"/> is used.
+    /// Called when <see cref="NwPlaceable"/> is being used.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnUsed)]
     public sealed class OnUsed : IEvent

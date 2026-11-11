@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class ModuleEvents
   {
     /// <summary>
-    /// Triggered when an event is raised in the NUI system.
+    /// Called when a player triggers an event in the NUI system.
     /// </summary>
     [GameEvent(EventScriptType.ModuleOnNuiEvent)]
     public sealed class OnNuiEvent : IEvent

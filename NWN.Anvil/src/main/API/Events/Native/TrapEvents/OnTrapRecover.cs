@@ -7,7 +7,7 @@ using Anvil.Services;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a creature attempts to recover a trap.
+  /// Called when a creature attempts to recover a trap.
   /// </summary>
   public sealed class OnTrapRecover : TrapEvent
   {

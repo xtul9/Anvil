@@ -3,11 +3,13 @@ using NWN.Core;
 
 namespace Anvil.API
 {
+  //! ## Examples
+  //! @include CassowaryExamples.cs
+
   /// <summary>
   /// Represents a Cassowary engine structure.<br/>
   /// A Cassowary is a type of solver. NWN uses them internally to resize the newer GUI window.
   /// </summary>
-  /// <example>[!code-csharp[](~/../NWN.Anvil.Samples/src/main/API/EngineStructures/CassowaryExamples.cs)]</example>
   public sealed class Cassowary : EngineStructure
   {
     internal Cassowary(IntPtr handle, bool memoryOwn) : base(handle, memoryOwn) {}
@@ -22,13 +24,8 @@ namespace Anvil.API
     /// </summary>
     public string DebugState => NWScript.CassowaryDebug(this);
 
-    private protected override int StructureId => NWScript.ENGINE_STRUCTURE_CASSOWARY;
+    protected override int StructureId => NWScript.ENGINE_STRUCTURE_CASSOWARY;
 
-    /// <summary>
-    /// Converts an engine pointer to a <see cref="Cassowary"/> solver instance.
-    /// </summary>
-    /// <param name="intPtr">The native engine pointer to a cassowary solver.</param>
-    /// <returns>The associated <see cref="Cassowary"/> instance, or null for a null pointer.</returns>
     public static implicit operator Cassowary?(IntPtr intPtr)
     {
       return intPtr != IntPtr.Zero ? new Cassowary(intPtr, true) : null;

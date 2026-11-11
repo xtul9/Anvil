@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Anvil.API;
-using Anvil.Plugins;
-using LightInject;
 using NLog;
 
 namespace Anvil.Services
 {
   [ServiceBinding(typeof(IScriptDispatcher))]
-  internal sealed class ScriptHandlerAttributeDispatchService(Lazy<IEnumerable<object>> services, IServiceManager serviceManager) : IScriptDispatcher, IInitializable, IDisposable
+  internal sealed class ScriptHandlerAttributeDispatchService(Lazy<IEnumerable<object>> services) : IScriptDispatcher, IInitializable
   {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -26,15 +23,6 @@ namespace Anvil.Services
       {
         RegisterServiceListeners(service);
       }
-
-      serviceManager.OnContainerCreate += OnContainerCreate;
-      serviceManager.OnContainerDispose += OnContainerDispose;
-    }
-
-    void IDisposable.Dispose()
-    {
-      serviceManager.OnContainerCreate -= OnContainerCreate;
-      serviceManager.OnContainerDispose -= OnContainerDispose;
     }
 
     ScriptHandleResult IScriptDispatcher.ExecuteScript(string script, uint objectSelf)
@@ -45,38 +33,6 @@ namespace Anvil.Services
       }
 
       return ScriptHandleResult.NotHandled;
-    }
-
-    // Isolated plugins have their own service container, so their services are not part of the injected services.
-    private void OnContainerCreate(IServiceContainer container, Plugin? plugin)
-    {
-      if (plugin == null)
-      {
-        return;
-      }
-
-      foreach (object service in container.GetAllInstances<object>())
-      {
-        RegisterServiceListeners(service);
-      }
-    }
-
-    private void OnContainerDispose(IServiceContainer container, Plugin? plugin, bool immediateDispose)
-    {
-      if (plugin == null)
-      {
-        return;
-      }
-
-      HashSet<object> disposingServices = new HashSet<object>(container.GetAllInstances<object>(), ReferenceEqualityComparer.Instance);
-      foreach ((string scriptName, ScriptHandler handler) in scriptHandlers.ToList())
-      {
-        handler.RemoveCallbacks(disposingServices);
-        if (!handler.HasCallbacks)
-        {
-          scriptHandlers.Remove(scriptName);
-        }
-      }
     }
 
     private void RegisterMethod(object service, MethodInfo method, string scriptName)

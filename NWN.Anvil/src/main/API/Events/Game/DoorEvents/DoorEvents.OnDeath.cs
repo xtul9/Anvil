@@ -9,14 +9,11 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class DoorEvents
   {
-    /// <summary>
-    /// Triggered when the door is destroyed.
-    /// </summary>
     [GameEvent(EventScriptType.DoorOnDeath)]
     public sealed class OnDeath : IEvent
     {
       /// <summary>
-      /// Gets the <see cref="NwDoor"/> that was destroyed.
+      /// Gets the <see cref="NwDoor"/> that was destroy.
       /// </summary>
       public NwDoor Door { get; } = NWScript.OBJECT_SELF.ToNwObject<NwDoor>()!;
 

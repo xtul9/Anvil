@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when a trap on <see cref="NwPlaceable"/> is triggered.
+    /// Called when <see cref="NwPlaceable"/> has a trap triggered.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnTrapTriggered)]
     public sealed class OnTrapTriggered : IEvent

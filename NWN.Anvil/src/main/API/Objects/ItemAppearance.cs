@@ -7,14 +7,6 @@ using NWN.Core;
 
 namespace Anvil.API
 {
-  /// <summary>
-  /// Provides structured access to an item's visual appearance (models and colors),
-  /// and utilities for cloning, copying, and serializing/deserializing appearance data.
-  /// </summary>
-  /// <remarks>
-  /// Appearance values include layered texture colors, base and per-part models, and per-part color overrides.
-  /// Serialization encodes these values in a stable hex format for persistence and transfer.
-  /// </remarks>
   public sealed class ItemAppearance
   {
     [Inject]
@@ -28,11 +20,10 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Creates a cloned item, applies the specified appearance changes to the clone, and replaces the original item.
+    /// Creates a new item with the specified appearance changes.<br/>
+    /// The existing item is destroyed and replaced with the new item.<br/>
+    /// If the item was equipped, it is restored to the original equipment slot.
     /// </summary>
-    /// <remarks>
-    /// The original item is removed and the clone is placed back into the same container or equipment slot where possible.
-    /// </remarks>
     /// <param name="changes">The appearance changes to apply.</param>
     /// <returns>The new item with the updated appearance.</returns>
     public NwItem ChangeAppearance(Action<ItemAppearance> changes)
@@ -111,12 +102,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Copies this item's appearance values to another item.
+    /// Copies this item appearance to another item.
+    /// <param name="otherItem">The item to copy this appearance to.</param>
     /// </summary>
-    /// <param name="otherItem">The item to receive the copied appearance.</param>
-    /// <remarks>
-    /// Copies layered texture colors, base model parts, armor model parts, and per-part color overrides.
-    /// </remarks>
     public void CopyTo(NwItem otherItem)
     {
       ItemAppearance otherAppearance = otherItem.Appearance;
@@ -146,7 +134,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Updates this item's appearance from a serialized string created by <see cref="Serialize"/>.
+    /// Updates this item appearance using the value retrieved through <see cref="Serialize"/>.
     /// </summary>
     /// <param name="serialized">The serialized item appearance.</param>
     /// <exception cref="ArgumentException">Thrown if an invalid serialized string is specified.</exception>
@@ -200,12 +188,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the armor color value for the specified slot.
+    /// Gets the armor color of this item.
     /// </summary>
     /// <param name="slot">The armor color slot index to query.</param>
-    /// <remarks>
-    /// Slots 0–5 return layered texture colors; higher indices refer to per-part overrides indexed by part and texture.
-    /// </remarks>
     public byte GetArmorColor(ItemAppearanceArmorColor slot)
     {
       int index = (int)slot;
@@ -228,10 +213,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the armor model part value for the specified slot.
+    /// Gets the armor model of this item.
     /// </summary>
     /// <param name="slot">The armor model slot index to query.</param>
-    /// <returns>The model part value; returns 0 if the slot index is out of range.</returns>
     public ushort GetArmorModel(CreaturePart slot)
     {
       int index = (int)slot;
@@ -245,7 +229,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the armor color for a specific piece and texture layer.
+    /// Gets the armor color for a piece of this item.
     /// </summary>
     /// <param name="modelSlot">The model portion of the slot to query.</param>
     /// <param name="colorSlot">The color portion of the slot to query.</param>
@@ -257,7 +241,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the base (simple) model value for this item.
+    /// Gets the base model of this item.
     /// </summary>
     public ushort GetSimpleModel()
     {
@@ -265,10 +249,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the weapon color value for the specified slot.
+    /// Gets the weapon color of this item.
     /// </summary>
     /// <param name="slot">The weapon color index to query.</param>
-    /// <returns>The color value; returns 0 if the slot index is out of range.</returns>
     public byte GetWeaponColor(ItemAppearanceWeaponColor slot)
     {
       int index = (int)slot;
@@ -282,10 +265,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Gets the weapon model part value for the specified slot.
+    /// Gets the weapon model of this item.
     /// </summary>
     /// <param name="slot">The weapon model index to query.</param>
-    /// <returns>The model part value; returns 0 if the slot index is out of range.</returns>
     public ushort GetWeaponModel(ItemAppearanceWeaponModel slot)
     {
       int index = (int)slot;
@@ -299,13 +281,9 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Serializes the entire item appearance into a hex string.
+    /// Gets a string containing the entire appearance for this item.
     /// </summary>
     /// <returns>A string representing the item's appearance.</returns>
-    /// <remarks>
-    /// The string encodes layered colors, base model parts, armor model parts, and per-part color overrides in fixed order.
-    /// Use <see cref="Deserialize"/> to restore the appearance.
-    /// </remarks>
     public string Serialize()
     {
       // Based on the serialization method used in NWNX to ensure cross-compatibility: https://github.com/nwnxee/unified/blob/master/Plugins/Item/Item.cpp#L120-L154
@@ -338,7 +316,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the armor color value for the specified slot.
+    /// Sets the armor color of this item.
     /// </summary>
     /// <param name="slot">The armor color slot index to be assigned.</param>
     /// <param name="value">The new color to assign.</param>
@@ -365,13 +343,10 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the armor model part value for the specified slot.
+    /// Sets the armor model of this item.
     /// </summary>
     /// <param name="slot">The armor model slot index to be assigned.</param>
     /// <param name="value">The new model to assign.</param>
-    /// <remarks>
-    /// Updating the model part recalculates the item's armor value.
-    /// </remarks>
     public void SetArmorModel(CreaturePart slot, ushort value)
     {
       int index = (int)slot;
@@ -384,7 +359,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the armor color for a specific piece and texture layer.
+    /// Sets the armor color for a piece of this item.
     /// </summary>
     /// <param name="modelSlot">The model portion of the slot to assign.</param>
     /// <param name="colorSlot">The color portion of the slot to assign.</param>
@@ -397,7 +372,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the base (simple) model value for this item.
+    /// Sets the base model of this item.
     /// </summary>
     public void SetSimpleModel(ushort value)
     {
@@ -408,7 +383,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the weapon color value for the specified slot.
+    /// Sets the weapon color of this item.
     /// </summary>
     /// <param name="slot">The weapon color index to be assigned.</param>
     /// <param name="value">The new color to assign.</param>
@@ -423,7 +398,7 @@ namespace Anvil.API
     }
 
     /// <summary>
-    /// Sets the weapon model part value for the specified slot.
+    /// Sets the weapon model of this item.
     /// </summary>
     /// <param name="slot">The weapon model index to be assigned.</param>
     /// <param name="value">The new model to assign.</param>

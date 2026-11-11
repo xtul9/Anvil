@@ -1,6 +1,5 @@
 using System;
 using Anvil.API;
-using Anvil.Plugins;
 
 namespace Anvil.Services
 {
@@ -35,11 +34,6 @@ namespace Anvil.Services
       {
         throw new InvalidOperationException("Attempted to use invalid script callback handle.");
       }
-    }
-
-    internal bool IsOwnedBy(Plugin plugin)
-    {
-      return plugin.IsOwnerOf(callback);
     }
 
     internal ScriptHandleResult Invoke(CallInfo callInfo)

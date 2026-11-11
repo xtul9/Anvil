@@ -7,9 +7,6 @@ using NWN.Native.API;
 
 namespace Anvil.API.Events
 {
-  /// <summary>
-  /// Triggered when a creature closes a container item.
-  /// </summary>
   public sealed class OnItemInventoryClose : IEvent
   {
     /// <summary>
@@ -18,13 +15,10 @@ namespace Anvil.API.Events
     public NwCreature ClosedBy { get; private init; } = null!;
 
     /// <summary>
-    /// Gets the container being closed.
+    /// Gets the container being opened.
     /// </summary>
     public NwItem Container { get; private init; } = null!;
 
-    /// <summary>
-    /// Set to true to prevent the container from being closed.
-    /// </summary>
     public bool PreventClose { get; set; }
 
     NwObject IEvent.Context => ClosedBy;

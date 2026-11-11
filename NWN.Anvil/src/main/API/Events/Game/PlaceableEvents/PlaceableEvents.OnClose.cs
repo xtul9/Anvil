@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when <see cref="NwCreature"/> closes a <see cref="NwPlaceable"/>.
+    /// Called when <see cref="NwCreature"/> has closed a <see cref="NwPlaceable"/>.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnClosed)]
     public sealed class OnClose : IEvent
