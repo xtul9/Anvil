@@ -358,3 +358,8 @@ crashlytics-build.properties
 fabric.properties
 docs/html
 docs/api
+
+# Agent tooling
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/

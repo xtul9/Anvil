@@ -1,0 +1,48 @@
+name: SoW Pull Request
+
+# Upstream's CI only runs for main and development, so the fork's working
+# branch gets its checks here. No paths filter: a guide-only change must
+# still hit the base check.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sow-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  base:
+    name: Base is net10-hot-reload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the base branch
+        env:
+          BASE: ${{ github.base_ref }}
+        # A pull request into main or development carries the whole fork.
+        run: |
+          if [ "$BASE" != "net10-hot-reload" ]; then
+            echo "::error::This pull request targets '$BASE'. Every fork pull request targets net10-hot-reload (see AGENTS.md)."
+            exit 1
+          fi
+
+  build:
+    name: Release build
+    needs: base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Build
+        run: dotnet build --configuration Release
