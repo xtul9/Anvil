@@ -4,10 +4,12 @@ using NWN.Native.API;
 
 namespace Anvil.API
 {
+  //! ## Examples
+  //! @include EffectExamples.cs
+
   /// <summary>
   /// Represents an effect engine structure.
   /// </summary>
-  /// <example>[!code-csharp[](~/../NWN.Anvil.Samples/src/main/API/EngineStructures/EffectExamples.cs)]</example>
   public sealed partial class Effect : EffectBase
   {
     internal Effect(CGameEffect effect, bool memoryOwn) : base(effect, memoryOwn) {}
@@ -68,14 +70,8 @@ namespace Anvil.API
     /// </summary>
     public float TotalDuration => NWScript.GetEffectDuration(this);
 
-    private protected override int StructureId => NWScript.ENGINE_STRUCTURE_EFFECT;
+    protected override int StructureId => NWScript.ENGINE_STRUCTURE_EFFECT;
 
-    /// <summary>
-    /// Converts a native pointer to an <see cref="Effect"/> instance.
-    /// Returns null if the pointer is zero.
-    /// </summary>
-    /// <param name="intPtr">The native engine pointer to a game effect.</param>
-    /// <returns>An <see cref="Effect"/> instance, or null for a null pointer.</returns>
     public static implicit operator Effect?(IntPtr intPtr)
     {
       return intPtr != IntPtr.Zero ? new Effect(CGameEffect.FromPointer(intPtr), true) : null;

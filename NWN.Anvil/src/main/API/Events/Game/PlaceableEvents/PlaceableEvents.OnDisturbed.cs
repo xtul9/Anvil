@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when <see cref="NwPlaceable"/> inventory is disturbed.
+    /// Called when <see cref="NwPlaceable"/> inventory has been disturbed.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnInventoryDisturbed)]
     public sealed class OnDisturbed : IEvent

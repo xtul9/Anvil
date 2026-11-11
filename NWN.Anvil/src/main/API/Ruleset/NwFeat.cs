@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -190,16 +189,15 @@ namespace Anvil.API
     /// Resolves a <see cref="NwFeat"/> from a <see cref="Anvil.API.Feat"/>.
     /// </summary>
     /// <param name="featType">The feat type to resolve.</param>
-    /// <returns>The associated <see cref="NwFeat"/> instance.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if featType is not a value defined in feats.2da.</exception>
-    public static NwFeat FromFeatType(Feat featType)
+    /// <returns>The associated <see cref="NwFeat"/> instance. Null if the feat type is invalid.</returns>
+    public static NwFeat? FromFeatType(Feat featType)
     {
-      return NwRuleset.Feats.ElementAt((int)featType);
+      return NwRuleset.Feats.ElementAtOrDefault((int)featType);
     }
 
-    public static implicit operator NwFeat(Feat featType)
+    public static implicit operator NwFeat?(Feat featType)
     {
-      return NwRuleset.Feats.ElementAt((int)featType);
+      return NwRuleset.Feats.ElementAtOrDefault((int)featType);
     }
 
     /// <summary>

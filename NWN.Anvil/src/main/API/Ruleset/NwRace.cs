@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using NWN.Native.API;
 
@@ -121,16 +120,15 @@ namespace Anvil.API
     /// Resolves a <see cref="NwRace"/> from a <see cref="Anvil.API.RacialType"/>.
     /// </summary>
     /// <param name="racialType">The racial type to resolve.</param>
-    /// <returns>The associated <see cref="NwRace"/> instance.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if racialType is not a value defined in racialtypes.2da.</exception>
-    public static NwRace FromRacialType(RacialType racialType)
+    /// <returns>The associated <see cref="NwRace"/> instance. Null if the racial type is invalid.</returns>
+    public static NwRace? FromRacialType(RacialType racialType)
     {
-      return NwRuleset.Races.ElementAt((int)racialType);
+      return NwRuleset.Races.ElementAtOrDefault((int)racialType);
     }
 
-    public static implicit operator NwRace(RacialType racialType)
+    public static implicit operator NwRace?(RacialType racialType)
     {
-      return NwRuleset.Races.ElementAt((int)racialType);
+      return NwRuleset.Races.ElementAtOrDefault((int)racialType);
     }
 
     /// <summary>

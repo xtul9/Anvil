@@ -2,9 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Anvil.API
 {
-  /// <summary>
-  /// Object helpers for resolving player information from game objects.
-  /// </summary>
   public static class ObjectExtensions
   {
     /// <summary>

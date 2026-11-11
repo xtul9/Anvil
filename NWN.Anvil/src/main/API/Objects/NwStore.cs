@@ -34,7 +34,6 @@ namespace Anvil.API
       return store != null && store.Pointer != IntPtr.Zero ? new NwStore(store) : null;
     }
 
-    /// <inheritdoc/>
     public override bool IsValid => NWNXUtils.AsNWSStore(NWNXUtils.GetGameObject(ObjectId)) == store.Pointer;
 
     /// <summary>

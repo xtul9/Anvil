@@ -9,12 +9,12 @@ using Anvil.Services;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a creature attempts to use a skill.
+  /// Called when a creature attempts to use a skill.
   /// </summary>
   public sealed class OnUseSkill : IEvent
   {
     /// <summary>
-    /// Gets the area where the skill is used.
+    /// Gets the area that the skill was used.
     /// </summary>
     public NwArea Area { get; private init; } = null!;
 
@@ -24,7 +24,7 @@ namespace Anvil.API.Events
     public NwCreature Creature { get; private init; } = null!;
 
     /// <summary>
-    /// Set to true to prevent usage of this skill.
+    /// Gets or sets whether usage of this skill should be prevented.
     /// </summary>
     public bool PreventSkillUse { get; set; }
 
@@ -34,7 +34,7 @@ namespace Anvil.API.Events
     public NwSkill Skill { get; private init; } = null!;
 
     /// <summary>
-    /// Gets the sub-skill (if any) that is being used.
+    /// Gets the SubSkill (if any) that is being used.
     /// </summary>
     public SubSkill SubSkill { get; private init; }
 
@@ -49,7 +49,7 @@ namespace Anvil.API.Events
     public Vector3 TargetPosition { get; private init; }
 
     /// <summary>
-    /// Gets the item being used, if any.
+    /// Gets the item that is being used, if any.
     /// </summary>
     public NwItem UsedItem { get; private init; } = null!;
 

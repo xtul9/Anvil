@@ -7,28 +7,19 @@ using NWN.Native.API;
 
 namespace Anvil.API.Events
 {
-  /// <summary>
-  /// Triggered when a creature enters or exits stealth mode.
-  /// </summary>
   public sealed class OnStealthModeUpdate : IEvent
   {
-    /// <summary>
-    /// Gets the creature whose stealth mode is being updated.
-    /// </summary>
     public NwCreature Creature { get; private init; } = null!;
 
     /// <summary>
-    /// Gets or sets the override behavior applied when <see cref="EventType"/> is Enter.
+    /// Gets or sets an override behaviour to use if <see cref="EventType"/> is an Enter event.
     /// </summary>
     public StealthModeOverride EnterOverride { get; set; }
 
-    /// <summary>
-    /// Gets the event type indicating whether stealth mode is being entered or exited.
-    /// </summary>
     public ToggleModeEventType EventType { get; private init; }
 
     /// <summary>
-    /// Set to true to prevent exiting stealth mode when <see cref="EventType"/> is Exit.
+    /// Gets or sets a value indicating whether this creature should not be allowed to exit stealth mode, if <see cref="EventType"/> is an Exit event.
     /// </summary>
     public bool PreventExit { get; set; }
 

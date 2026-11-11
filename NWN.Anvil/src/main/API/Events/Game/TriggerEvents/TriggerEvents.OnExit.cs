@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class TriggerEvents
   {
-    /// <summary>
-    /// Triggered when an object exits an <see cref="NwTrigger"/>.
-    /// </summary>
     [GameEvent(EventScriptType.TriggerOnObjectExit)]
     public sealed class OnExit : IEvent
     {

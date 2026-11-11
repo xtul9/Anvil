@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when <see cref="NwPlaceable"/> is unlocked.
+    /// Called when <see cref="NwPlaceable"/> has been unlocked.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnUnlock)]
     public sealed class OnUnlock : IEvent

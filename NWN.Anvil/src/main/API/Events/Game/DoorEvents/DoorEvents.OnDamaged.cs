@@ -9,9 +9,6 @@ namespace Anvil.API.Events
   /// </summary>
   public static partial class DoorEvents
   {
-    /// <summary>
-    /// Triggered when the door takes damage.
-    /// </summary>
     [GameEvent(EventScriptType.DoorOnDamage)]
     public sealed class OnDamaged : IEvent
     {
@@ -33,7 +30,7 @@ namespace Anvil.API.Events
       NwObject IEvent.Context => Door;
 
       /// <summary>
-      /// Gets the damage dealt to the door by type.
+      /// Gets damage dealt to <see cref="NwDoor"/>, by <see cref="DamageType"/>.
       /// </summary>
       public int GetDamageDealtByType(DamageType damageType)
       {

@@ -7,13 +7,10 @@ using NWN.Native.API;
 
 namespace Anvil.API.Events
 {
-  /// <summary>
-  /// Triggered when a healing effect is applied to a target.
-  /// </summary>
   public sealed class OnHeal : IEvent
   {
     /// <summary>
-    /// Gets or sets the amount of HP the heal will provide.
+    /// Gets or sets how much HP the heal will provide.
     /// </summary>
     public int HealAmount { get; set; }
 

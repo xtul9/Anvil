@@ -8,7 +8,7 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a creature acquires an item.
+  /// Called when a creature acquires an item. This event is skippable.
   /// </summary>
   public sealed class OnCreatureAcquireItem : IEvent
   {
@@ -28,12 +28,12 @@ namespace Anvil.API.Events
     public NwGameObject? AcquiredFrom { get; private init; }
 
     /// <summary>
-    /// Gets whether the creature successfully acquired the item.
+    /// Gets if the creature was able to successfully acquire the item.
     /// </summary>
     public Lazy<bool> Result { get; private set; } = null!;
 
     /// <summary>
-    /// Set to true to skip the event and prevent acquiring the item.
+    /// Gets or sets if the event should be skipped, and the creature prevented from acquiring the item.
     /// </summary>
     public bool Skip { get; set; }
 

@@ -65,10 +65,11 @@ namespace Anvil.Services
       FileTarget fileTarget = new FileTarget("anvil.log")
       {
         Layout = DefaultLayout,
-        FileName = "${var:nwn_home}/logs.0/anvil.log",
+        FileName = new SimpleLayout("${var:nwn_home}/logs.0/anvil.log"),
         CreateDirs = false,
         KeepFileOpen = true,
         OpenFileCacheTimeout = 30,
+        ConcurrentWrites = false,
       };
 
       config.AddTarget(consoleTarget);

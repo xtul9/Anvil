@@ -8,7 +8,7 @@ using NWN.Native.API;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a player uses a quick chat command.
+  /// Called when a player uses a quick chat command.
   /// </summary>
   public sealed class OnPlayerQuickChat : IEvent
   {

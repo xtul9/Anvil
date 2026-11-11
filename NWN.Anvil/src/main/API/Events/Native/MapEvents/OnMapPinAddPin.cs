@@ -9,27 +9,27 @@ using Anvil.Services;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when a player is about to place a map pin.
+  /// Called when a player is about to place a map pin.
   /// </summary>
   public sealed class OnMapPinAddPin : IEvent
   {
     /// <summary>
-    /// Gets the note set on the map pin.
+    /// Gets the note that was set on the map pin.
     /// </summary>
     public string Note { get; private init; } = null!;
 
     /// <summary>
-    /// Gets the player placing the pin.
+    /// Gets the player that placed the pin.
     /// </summary>
     public NwPlayer Player { get; private init; } = null!;
 
     /// <summary>
-    /// Gets the position where the pin is placed.
+    /// Gets the position that the pin was placed at.
     /// </summary>
     public Vector3 Position { get; private init; }
 
     /// <summary>
-    /// Set to true to prevent the pin from being added.
+    /// Gets or sets if this pin add event should be prevented.
     /// </summary>
     public bool PreventPinAdd { get; set; }
 

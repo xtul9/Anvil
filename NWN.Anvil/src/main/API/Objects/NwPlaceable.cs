@@ -36,7 +36,6 @@ namespace Anvil.API
       return placeable != null && placeable.Pointer != IntPtr.Zero ? new NwPlaceable(placeable) : null;
     }
 
-    /// <inheritdoc/>
     public override bool IsValid => NWNXUtils.AsNWSPlaceable(NWNXUtils.GetGameObject(ObjectId)) == placeable.Pointer;
 
     /// <summary>
@@ -158,7 +157,7 @@ namespace Anvil.API
       }
 
       void* pItem = item.Item;
-      Placeable.AcquireItem(&pItem, item.Possessor, 0xFF, 0xFF, displayFeedback.ToInt());
+      Placeable.AcquireItem(&pItem, Invalid, 0xFF, 0xFF, displayFeedback.ToInt());
     }
 
     public override NwPlaceable Clone(Location location, string? newTag = null, bool copyLocalState = true)

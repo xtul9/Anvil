@@ -62,7 +62,6 @@ namespace Anvil.API
       return creature != null && creature.Pointer != IntPtr.Zero ? new NwCreature(creature) : null;
     }
 
-    /// <inheritdoc/>
     public override bool IsValid => NWNXUtils.AsNWSCreature(NWNXUtils.GetGameObject(ObjectId)) == creature.Pointer;
 
     /// <summary>
@@ -131,9 +130,6 @@ namespace Anvil.API
     /// </summary>
     public int ArcaneSpellFailure => NWScript.GetArcaneSpellFailure(this);
 
-    /// <summary>
-    /// Gets this creature's total armor check penalty from equipped gear.
-    /// </summary>
     public sbyte ArmorCheckPenalty => (sbyte)Creature.m_pStats.m_nArmorCheckPenalty;
 
     /// <summary>
@@ -198,11 +194,10 @@ namespace Anvil.API
     /// <summary>
     /// Sets the number of base attacks for this creature.<br/>
     /// The range of values accepted are from 1 to 6.<br/>
-    /// </summary>
-    /// <remarks> Each successive attack per round suffers a -5 penalty.<br/>
+    /// @note Each successive attack per round suffers a -5 penalty.<br/>
     /// If the character has levels in Monk and fights with Unarmed Strike, each successive attack per round suffers a -3 penalty.<br/>
     /// These additional attacks are not shown on the player's character sheet.
-    /// </remarks>
+    /// </summary>
     public int BaseAttackCount
     {
       get => Creature.m_pStats.GetAttacksPerRound();
@@ -793,9 +788,6 @@ namespace Anvil.API
       set => creature.m_pStats.m_nSkillPointsRemaining = value;
     }
 
-    /// <summary>
-    /// Gets this creature's shield check penalty from the equipped shield.
-    /// </summary>
     public sbyte ShieldCheckPenalty => (sbyte)Creature.m_pStats.m_nShieldCheckPenalty;
 
     /// <summary>
@@ -945,11 +937,6 @@ namespace Anvil.API
       return CreateInternal<NwCreature>(template, location, useAppearAnim, newTag);
     }
 
-    /// <summary>
-    /// Deserializes a creature from a GFF payload (BIC/UTC), returning a <see cref="NwCreature"/> instance created from the serialized data.
-    /// </summary>
-    /// <param name="serialized">The serialized GFF bytes (BIC, GFF, or UTC).</param>
-    /// <returns>The deserialized creature, or null if invalid.</returns>
     public static NwCreature? Deserialize(byte[] serialized)
     {
       CNWSCreature? creature = null;
@@ -977,19 +964,11 @@ namespace Anvil.API
       return result && creature != null ? creature.ToNwObject<NwCreature>() : null;
     }
 
-    /// <summary>
-    /// Implicitly converts the managed <see cref="NwCreature"/> to the native <see cref="CNWSCreature"/>.
-    /// </summary>
     public static implicit operator CNWSCreature?(NwCreature? creature)
     {
       return creature?.Creature;
     }
 
-    /// <summary>
-    /// Immediately adds the specified item to this creature's inventory.
-    /// </summary>
-    /// <param name="item">The item to acquire.</param>
-    /// <param name="displayFeedback">If true, shows acquisition feedback to the creature.</param>
     public unsafe void AcquireItem(NwItem item, bool displayFeedback = true)
     {
       if (item == null)
@@ -1513,18 +1492,7 @@ namespace Anvil.API
       creature.BroadcastSkillData(data);
     }
 
-    /// <summary>
-    /// Performs a spell resistance check between this creature (caster) and the specified target.
-    /// </summary>
-    /// <param name="target">The target object to perform the spell resist check.</param>
-    /// <returns>
-    /// <see cref="ResistSpellResult.NonPlayerSpell"/> if spell cast is not a player spell.<br/>
-    /// <see cref="ResistSpellResult.Resisted"/> if spell is resisted.<br/>
-    /// <see cref="ResistSpellResult.ResistedMagicImmune"/> if spell is resisted via magic immunity.<br/>
-    /// <see cref="ResistSpellResult.ResistedSpellAbsorbed"/> if spell is resisted via spell absorption.
-    /// </returns>
-    /// <remarks>For more nuanced control on spell resistance checks, consider using <see cref="SpellResistanceCheck"/>.</remarks>
-    /// <seealso cref="SpellResistanceCheck"/>
+    [Obsolete("Use SpellResistanceCheck instead.")]
     public ResistSpellResult CheckResistSpell(NwGameObject target)
     {
       return (ResistSpellResult)NWScript.ResistSpell(this, target);
@@ -1546,7 +1514,6 @@ namespace Anvil.API
       InitiativeModifierService.Value.ClearInitiativeModifier(this);
     }
 
-    /// <inheritdoc/>
     public override NwCreature Clone(Location location, string? newTag = null, bool copyLocalState = true)
     {
       return CloneInternal<NwCreature>(location, newTag, copyLocalState);
@@ -1567,11 +1534,6 @@ namespace Anvil.API
       }
     }
 
-    /// <summary>
-    /// Deserializes and updates this creature's quickbar buttons from a GFF payload.
-    /// </summary>
-    /// <param name="serialized">The serialized GFF bytes containing quickbar data.</param>
-    /// <returns>True if applied successfully; otherwise false.</returns>
     public bool DeserializeQuickbar(byte[] serialized)
     {
       bool result = NativeUtils.DeserializeGff(serialized, (resGff, resStruct) =>
@@ -1738,9 +1700,9 @@ namespace Anvil.API
     /// </summary>
     /// <param name="nwClass">The class with domains. Defaults to <see cref="ClassType.Cleric"/> if not specified.</param>
     /// <returns>An enumeration of this creature's domains.</returns>
-    public IEnumerable<NwDomain> GetClassDomains(NwClass? nwClass = null)
+    public IEnumerable<NwDomain> GetClassDomains(NwClass? nwClass = default)
     {
-      nwClass ??= NwClass.FromClassType(ClassType.Cleric);
+      nwClass ??= NwClass.FromClassType(ClassType.Cleric)!;
 
       const int error = (int)Domain.Error;
       int classT = nwClass.Id;
@@ -1892,11 +1854,6 @@ namespace Anvil.API
       };
     }
 
-    /// <summary>
-    /// Gets the quickbar button at the specified index.
-    /// </summary>
-    /// <param name="index">The button index (0-35).</param>
-    /// <returns>The quickbar button data.</returns>
     public PlayerQuickBarButton GetQuickBarButton(byte index)
     {
       if (index >= QuickBarButtonCount)
@@ -1912,9 +1869,6 @@ namespace Anvil.API
       return InternalGetQuickBarButton(index);
     }
 
-    /// <summary>
-    /// Gets all quickbar buttons configured for this creature.
-    /// </summary>
     public PlayerQuickBarButton[] GetQuickBarButtons()
     {
       if (Creature.m_pQuickbarButton == null)
@@ -1995,9 +1949,9 @@ namespace Anvil.API
     /// </summary>
     /// <param name="nwClass">The class to query for specialized spell schools. Defaults to <see cref="ClassType.Wizard"/> if not specified.</param>
     /// <returns>The creature's selected spell specialization.</returns>
-    public SpellSchool GetSpecialization(NwClass? nwClass = null)
+    public SpellSchool GetSpecialization(NwClass? nwClass = default)
     {
-      nwClass ??= NwClass.FromClassType(ClassType.Wizard);
+      nwClass ??= NwClass.FromClassType(ClassType.Wizard)!;
       return (SpellSchool)NWScript.GetSpecialization(this, nwClass.Id);
     }
 
@@ -2299,7 +2253,7 @@ namespace Anvil.API
     /// <returns>Returns the new level if successful, or 0 if the function fails.</returns>
     public int LevelUpHenchman(NwClass nwClass, PackageType package, bool spellsReady = false)
     {
-      return NWScript.LevelUpHenchman(this, nwClass.Id, spellsReady.ToInt(), (int)package);
+      return NWScript.LevelUpHenchman(this, nwClass.Id, (int)package, spellsReady.ToInt());
     }
 
     /// <summary>
@@ -2477,7 +2431,6 @@ namespace Anvil.API
       return retVal;
     }
 
-    /// <inheritdoc/>
     public override byte[]? Serialize()
     {
       return NativeUtils.SerializeGff("BIC", (resGff, resStruct) =>
@@ -2487,10 +2440,6 @@ namespace Anvil.API
       });
     }
 
-    /// <summary>
-    /// Serializes this creature's quickbar buttons to a GFF payload.
-    /// </summary>
-    /// <returns>Serialized GFF bytes containing quickbar data.</returns>
     public byte[]? SerializeQuickbar()
     {
       return NativeUtils.SerializeGff("GFF", (resGff, resStruct) =>
@@ -2597,11 +2546,6 @@ namespace Anvil.API
       NWScript.SetAssociateListenPatterns(this);
     }
 
-    /// <summary>
-    /// Sets a quickbar button at the specified index for this creature.
-    /// </summary>
-    /// <param name="index">The button index (0-35).</param>
-    /// <param name="data">The button data to apply.</param>
     public void SetQuickBarButton(byte index, PlayerQuickBarButton data)
     {
       if (index >= QuickBarButtonCount)
@@ -2624,10 +2568,6 @@ namespace Anvil.API
       }
     }
 
-    /// <summary>
-    /// Sets the quickbar contents for this creature.
-    /// </summary>
-    /// <param name="buttons">The array of button data to apply.</param>
     public void SetQuickBarButtons(PlayerQuickBarButton[] buttons)
     {
       if (Creature.m_pQuickbarButton == null)
@@ -2827,16 +2767,6 @@ namespace Anvil.API
     {
       Creature.SummonAssociate(new CResRef(resRef), Creature.m_pStats.m_sFamiliarName, (ushort)AssociateType.Familiar);
       Creature.m_bSummonedFamiliar = 1;
-    }
-
-    /// <summary>
-    /// Use this on an NPC to cause all nearby creatures to stop what they are doing and sets the NPC's enemies within this range to be neutral towards the NPC with nearby enemies.
-    /// If this command is run on a PC or an object that is not a creature, nothing will happen.
-    /// </summary>
-    public async Task SurrenderToEnemies()
-    {
-      await WaitForObjectContext();
-      NWScript.SurrenderToEnemies();
     }
 
     /// <summary>

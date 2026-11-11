@@ -43,7 +43,6 @@ namespace Anvil.API
       return item != null && item.Pointer != IntPtr.Zero ? new NwItem(item) : null;
     }
 
-    /// <inheritdoc/>
     public override bool IsValid => NWNXUtils.AsNWSItem(NWNXUtils.GetGameObject(ObjectId)) == item.Pointer;
 
     /// <summary>
@@ -338,7 +337,7 @@ namespace Anvil.API
       }
 
       void* itemPtr = item.Item;
-      Item.AcquireItem(&itemPtr, item.Possessor, 0xFF, 0xFF, displayFeedback.ToInt());
+      Item.AcquireItem(&itemPtr, Invalid, 0xFF, 0xFF, displayFeedback.ToInt());
     }
 
     /// <summary>

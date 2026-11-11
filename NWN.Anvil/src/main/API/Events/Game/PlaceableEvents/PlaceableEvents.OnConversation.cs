@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class PlaceableEvents
   {
     /// <summary>
-    /// Triggered when this placeable starts a conversation or hears a listened-for message.
+    /// Called when this placeable starts a conversation, or hears a message they are listening for.
     /// </summary>
     [GameEvent(EventScriptType.PlaceableOnDialogue)]
     public sealed class OnConversation : IEvent

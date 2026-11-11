@@ -10,7 +10,7 @@ namespace Anvil.API.Events
   public static partial class CreatureEvents
   {
     /// <summary>
-    /// Triggered when the creature perceives another creature (seen, heard, vanished, inaudible).
+    /// Triggered by <see cref="NwCreature"/> when its perception is triggered by another <see cref="NwCreature"/>.
     /// </summary>
     [GameEvent(EventScriptType.CreatureOnNotice)]
     public sealed class OnPerception : IEvent

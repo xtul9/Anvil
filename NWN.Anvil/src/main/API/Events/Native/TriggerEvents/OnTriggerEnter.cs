@@ -8,7 +8,7 @@ using Anvil.Services;
 namespace Anvil.API.Events
 {
   /// <summary>
-  /// Triggered when an object enters a trigger.
+  /// Called when an object enters a trigger.
   /// </summary>
   public sealed class OnTriggerEnter : IEvent
   {
@@ -18,17 +18,17 @@ namespace Anvil.API.Events
     public NwGameObject EnteredObject { get; private init; } = null!;
 
     /// <summary>
-    /// Gets whether the trigger is considered a trap.
+    /// Gets if the trigger is considered a trap.
     /// </summary>
     public bool IsTrap { get; private init; }
 
     /// <summary>
-    /// Gets whether the trigger was force set.
+    /// Gets if the trigger was force set.
     /// </summary>
     public bool IsTrapForceSet { get; private init; }
 
     /// <summary>
-    /// Set to true to skip firing the trigger event.
+    /// Gets or sets whether this trigger should fire.
     /// </summary>
     public bool Skip { get; set; }
 
@@ -100,7 +100,7 @@ namespace Anvil.API
   public sealed partial class NwTrigger
   {
     /// <inheritdoc cref="Events.OnTriggerEnter"/>
-    public event Action<OnTriggerEnter> OnTriggerEnter
+    public event Action<OnTriggerEnter> OnDetectModeUpdate
     {
       add => EventService.Subscribe<OnTriggerEnter, OnTriggerEnter.Factory>(this, value);
       remove => EventService.Unsubscribe<OnTriggerEnter, OnTriggerEnter.Factory>(this, value);
