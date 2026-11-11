@@ -26,6 +26,15 @@ jobs:
         with:
           global-json-file: global.json
 
+      # A tag off net10-hot-reload would publish a build the fork never merged.
+      - name: Check the tag is on net10-hot-reload
+        run: |
+          git fetch --no-tags origin net10-hot-reload
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" FETCH_HEAD; then
+            echo "::error::$GITHUB_REF_NAME is not on net10-hot-reload. Delete the tag and tag a merge on net10-hot-reload."
+            exit 1
+          fi
+
       - name: Build
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
