@@ -241,9 +241,9 @@ namespace Anvil.Services
 
       OriginalNames originalNames = new OriginalNames
       {
-        FirstName = creature.m_pStats.m_lsFirstName,
-        LastName = creature.m_pStats.m_lsLastName,
-        PlayerName = LowLevel.ServerExoApp.GetNetLayer().GetPlayerInfo(player.Player.m_nPlayerID).m_sPlayerName,
+        FirstName = creature.m_pStats.m_lsFirstName.ExtractLocString(),
+        LastName = creature.m_pStats.m_lsLastName.ExtractLocString(),
+        PlayerName = LowLevel.ServerExoApp.GetNetLayer().GetPlayerInfo(player.Player.m_nPlayerID).m_sPlayerName.ToString() ?? "",
       };
 
       renameOriginalNames[player] = originalNames;
@@ -468,8 +468,8 @@ namespace Anvil.Services
       {
         if (nameType != OverrideNameType.Original)
         {
-          targetCreature.m_pStats.m_lsFirstName = originalName.FirstName;
-          targetCreature.m_pStats.m_lsLastName = originalName.LastName;
+          targetCreature.m_pStats.m_lsFirstName = originalName.FirstName.ToExoLocString();
+          targetCreature.m_pStats.m_lsLastName = originalName.LastName.ToExoLocString();
         }
 
         targetCreature.m_sDisplayName = OverwriteDisplayName ? nameOverride.CharacterNameInternal : "".ToExoString();
